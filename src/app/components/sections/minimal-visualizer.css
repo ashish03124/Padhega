@@ -1,0 +1,140 @@
+/* Minimal Visualizer Styles - Override complex visualizer */
+
+.music-visualizer {
+    height: 100px !important;
+    background: rgba(48, 82, 41, 0.03) !important;
+    border: 1px solid rgba(48, 82, 41, 0.15) !important;
+    border-radius: var(--radius-md) !important;
+}
+
+/* Minimal Visualizer */
+.minimal-visualizer {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+}
+
+/* Breathing Circle */
+.breathing-circle {
+    position: relative;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.circle-core {
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(48, 82, 41, 0.4), rgba(48, 82, 41, 0.1));
+    border-radius: 50%;
+    animation: breathe 4s ease-in-out infinite;
+    border: 1px solid rgba(48, 82, 41, 0.3);
+}
+
+@keyframes breathe {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.6;
+    }
+
+    50% {
+        transform: scale(1.15);
+        opacity: 1;
+    }
+}
+
+/* Minimal Waves */
+.minimal-waves {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 60px;
+}
+
+.wave-bar {
+    width: 3px;
+    height: 20%;
+    background: linear-gradient(to top, rgba(48, 82, 41, 0.4), rgba(48, 82, 41, 0.7));
+    border-radius: 4px;
+    animation: gentleWave 1.8s ease-in-out infinite;
+}
+
+.wave-bar:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.wave-bar:nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+.wave-bar:nth-child(4) {
+    animation-delay: 0.3s;
+}
+
+.wave-bar:nth-child(5) {
+    animation-delay: 0.4s;
+}
+
+@keyframes gentleWave {
+
+    0%,
+    100% {
+        height: 20%;
+        opacity: 0.5;
+    }
+
+    50% {
+        height: 70%;
+        opacity: 1;
+    }
+}
+
+/* Idle Visualizer - Simplified */
+.music-visualizer .idle-visualizer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    color: rgba(48, 82, 41, 0.5);
+}
+
+.music-visualizer .idle-visualizer i {
+    font-size: 1.5rem;
+    opacity: 0.6;
+}
+
+.music-visualizer .idle-visualizer span {
+    font-size: 0.875rem;
+    font-weight: 500;
+    opacity: 0.7;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .music-visualizer {
+        height: 80px !important;
+    }
+
+    .breathing-circle {
+        width: 40px;
+        height: 40px;
+    }
+
+    .minimal-waves {
+        height: 50px;
+    }
+}
+
+/* Light Mode Overrides */
+[data-theme='light'] .music-visualizer .idle-visualizer {
+    color: var(--text-secondary, #4b5563);
+}

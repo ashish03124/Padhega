@@ -1,0 +1,136 @@
+@import "tailwindcss";
+
+:root {
+  /* Default Dark Mode */
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --primary: #305229;
+  --secondary: #10b981;
+  /* Modern vibrant emerald */
+
+  /* Glass Variables (Dark) */
+  --glass-bg: rgba(255, 255, 255, 0.01);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+
+  --text-primary: #ffffff;
+  --text-primary-rgb: 255, 255, 255;
+  --text-secondary: #a3a3a3;
+  --text-secondary-rgb: 163, 163, 163;
+  --text-muted: #737373;
+
+  --card-bg: rgba(10, 10, 10, 0.75);
+  --card-bg-hover: rgba(255, 255, 255, 0.1);
+  --input-bg: rgba(0, 0, 0, 0.3);
+
+  /* Adaptive Backgrounds */
+  --bg-overlay-subtle: rgba(0, 0, 0, 0.05);
+  --bg-overlay-light: rgba(0, 0, 0, 0.1);
+  --bg-overlay-medium: rgba(0, 0, 0, 0.2);
+  --bg-overlay-dark: rgba(0, 0, 0, 0.4);
+  --bg-modal: rgba(0, 0, 0, 0.7);
+
+  /* Border Radii */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+}
+
+[data-theme='light'] {
+  /* Light Mode Overrides */
+  --background: #fdfbff;
+  /* Very light violet-white */
+  --foreground: #1a1a1a;
+
+  /* Glass Variables (Light) */
+  --glass-bg: rgba(255, 255, 255, 0.65);
+  /* Frosted glass */
+  --glass-border: rgba(48, 82, 41, 0.2);
+  /* Light violet border */
+  --glass-shadow: 0 8px 32px 0 rgba(48, 82, 41, 0.1);
+
+  --text-primary: #1a1a1a;
+  --text-primary-rgb: 26, 26, 26;
+  --text-secondary: #4b5563;
+  --text-secondary-rgb: 75, 85, 99;
+  --text-muted: #6b7280;
+
+  --card-bg: #ffffff;
+  --card-bg-hover: rgba(255, 255, 255, 0.9);
+  --input-bg: rgba(255, 255, 255, 0.7);
+
+  /* Adaptive Backgrounds (Light Mode) */
+  --bg-overlay-subtle: rgba(0, 0, 0, 0.02);
+  --bg-overlay-light: rgba(0, 0, 0, 0.04);
+  --bg-overlay-medium: rgba(0, 0, 0, 0.06);
+  --bg-overlay-dark: rgba(0, 0, 0, 0.08);
+  --bg-modal: rgba(48, 82, 41, 0.15);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background-color: var(--background);
+  background-image:
+    linear-gradient(rgba(10, 10, 10, 0.75), rgba(10, 10, 10, 0.85)),
+    url('/images/blossom-background-dark.png');
+  background-size: cover;
+  background-position: center center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+  transition: background-image 0.5s ease;
+}
+
+/* Fix for mobile where portrait screens zoom in landscape images too much */
+@media (max-width: 768px) {
+  body {
+    background-position: top center;
+  }
+}
+
+[data-theme='light'] body {
+  /* Light Mode Blossom Background */
+  background-image:
+    linear-gradient(rgba(253, 251, 255, 0.90), rgba(253, 251, 255, 0.10)),
+    url('/images/blossom%20background.jpg');
+}
+
+/* Glassmorphism Utilities */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-card {
+  background: var(--glass-bg);
+  border-radius: var(--radius-md);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+}
+
+.text-glow {
+  /* glow removed */
+}
+
+/* Placeholder for contentEditable */
+[contenteditable]:empty:before {
+  content: attr(data-placeholder);
+  color: var(--text-muted);
+  pointer-events: none;
+  display: block;
+}

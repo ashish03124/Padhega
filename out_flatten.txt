@@ -1,0 +1,14 @@
+Flattened: c:\Users\Agaru\OneDrive\Documents\visual studio 1\PADHEGAA\my-first-website\src\app\community\community.css
+Flattened: c:\Users\Agaru\OneDrive\Documents\visual studio 1\PADHEGAA\my-first-website\src\app\components\auth-styles.css
+Flattened: c:\Users\Agaru\OneDrive\Documents\visual studio 1\PADHEGAA\my-first-website\src\app\components\modals.css
+Flattened: c:\Users\Agaru\OneDrive\Documents\visual studio 1\PADHEGAA\my-first-website\src\app\components\sections\minimal-visualizer.css
+Flattened: c:\Users\Agaru\OneDrive\Documents\visual studio 1\PADHEGAA\my-first-website\src\app\components\sections\music-styles.css
+Flattened: c:\Users\Agaru\OneDrive\Documents\visual studio 1\PADHEGAA\my-first-website\src\app\components\sections\notes-styles.css
+Flattened: c:\Users\Agaru\OneDrive\Documents\visual studio 1\PADHEGAA\my-first-website\src\app\components\sections\tasks-styles.css
+Flattened: c:\Users\Agaru\OneDrive\Documents\visual studio 1\PADHEGAA\my-first-website\src\app\globals.css
+Flattened: c:\Users\Agaru\OneDrive\Documents\visual studio 1\PADHEGAA\my-first-website\src\app\resources\resources.css
+Flattened: c:\Users\Agaru\OneDrive\Documents\visual studio 1\PADHEGAA\my-first-website\src\app\stats\stats.css
+Flattened: c:\Users\Agaru\OneDrive\Documents\visual studio 1\PADHEGAA\my-first-website\src\app\study-rooms\study-rooms.css
+Flattened: c:\Users\Agaru\OneDrive\Documents\visual studio 1\PADHEGAA\my-first-website\src\app\study-rooms\[roomId]\room.css
+Flattened: c:\Users\Agaru\OneDrive\Documents\visual studio 1\PADHEGAA\my-first-website\src\app\styles.css
+Done flattening UI!

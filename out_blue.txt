@@ -1,0 +1,14 @@
+Fixed: c:\Users\Agaru\OneDrive\Documents\visual studio 1\PADHEGAA\my-first-website\src\app\community\community.css
+Fixed: c:\Users\Agaru\OneDrive\Documents\visual studio 1\PADHEGAA\my-first-website\src\app\components\ActivityHistoryModal.tsx
+Fixed: c:\Users\Agaru\OneDrive\Documents\visual studio 1\PADHEGAA\my-first-website\src\app\components\auth-styles.css
+Fixed: c:\Users\Agaru\OneDrive\Documents\visual studio 1\PADHEGAA\my-first-website\src\app\components\modals.css
+Fixed: c:\Users\Agaru\OneDrive\Documents\visual studio 1\PADHEGAA\my-first-website\src\app\components\sections\music-styles.css
+Fixed: c:\Users\Agaru\OneDrive\Documents\visual studio 1\PADHEGAA\my-first-website\src\app\components\sections\tasks-styles.css
+Fixed: c:\Users\Agaru\OneDrive\Documents\visual studio 1\PADHEGAA\my-first-website\src\app\components\sections\TasksSection.tsx
+Fixed: c:\Users\Agaru\OneDrive\Documents\visual studio 1\PADHEGAA\my-first-website\src\app\resources\resources.css
+Fixed: c:\Users\Agaru\OneDrive\Documents\visual studio 1\PADHEGAA\my-first-website\src\app\stats\stats.css
+Fixed: c:\Users\Agaru\OneDrive\Documents\visual studio 1\PADHEGAA\my-first-website\src\app\stats\StatsClient.tsx
+Fixed: c:\Users\Agaru\OneDrive\Documents\visual studio 1\PADHEGAA\my-first-website\src\app\study-rooms\study-rooms.css
+Fixed: c:\Users\Agaru\OneDrive\Documents\visual studio 1\PADHEGAA\my-first-website\src\app\study-rooms\[roomId]\room.css
+Fixed: c:\Users\Agaru\OneDrive\Documents\visual studio 1\PADHEGAA\my-first-website\src\app\styles.css
+Blue elimination done!

@@ -1,0 +1,38 @@
+/* Quick CSS fix for stats page visibility */
+/* Add this to the end of stats.css or paste in browser console as a permanent fix */
+
+/* Ensure all stats content is visible with white text */
+.stats-container {
+  color: #ffffff !important;
+}
+
+.stats-hero,
+.stats-hero *,
+.quick-stats,
+.quick-stats *,
+.stats-grid,
+.stats-grid *,
+.comparison-section *,
+.recommendations-section * {
+  color: #ffffff !important;
+}
+
+.stat-pill {
+  background: rgba(99, 102, 241, 0.15) !important;
+  border: 1px solid rgba(99, 102, 241, 0.3) !important;
+}
+
+.stat-card {
+  background: rgba(30, 30, 60, 0.4) !important;
+  border: 1px solid rgba(99, 102, 241, 0.2) !important;
+}
+
+/* Ensure buttons and interactive elements are visible */
+button {
+  color: #ffffff !important;
+}
+
+.goal-item,
+.timeline-item {
+  color: #ffffff !important;
+}
