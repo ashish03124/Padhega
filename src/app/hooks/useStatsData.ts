@@ -44,10 +44,37 @@ export const useStatsData = () => {
         if (status !== 'authenticated') return;
 
         try {
-            // Fetch sessions with cache busting
-            const sessionsRes = await fetch(`/api/sessions?t=${Date.now()}`);
-            const sessionsData = await sessionsRes.json();
+            // Initiate all API calls in parallel for maximum speed
+            const [
+                sessionsRes,
+                goalsRes,
+                tasksRes,
+                notesRes,
+                xpRes
+            ] = await Promise.all([
+                fetch('/api/sessions'),
+                fetch('/api/goals'),
+                fetch('/api/tasks'),
+                fetch('/api/notes'),
+                fetch('/api/user/xp')
+            ]);
 
+            // Parse all responses in parallel
+            const [
+                sessionsData,
+                goalsData,
+                tasksData,
+                notesData,
+                xpData
+            ] = await Promise.all([
+                sessionsRes.ok ? sessionsRes.json() : Promise.resolve([]),
+                goalsRes.ok ? goalsRes.json() : Promise.resolve([]),
+                tasksRes.ok ? tasksRes.json() : Promise.resolve([]),
+                notesRes.ok ? notesRes.json() : Promise.resolve([]),
+                xpRes.ok ? xpRes.json() : Promise.resolve({})
+            ]);
+
+            // Process Sessions
             if (Array.isArray(sessionsData)) {
                 setSessions(sessionsData.map((s: any) => ({
                     id: s._id,
@@ -59,10 +86,7 @@ export const useStatsData = () => {
                 })));
             }
 
-            // Fetch goals
-            const goalsRes = await fetch(`/api/goals?t=${Date.now()}`);
-            const goalsData = await goalsRes.json();
-
+            // Process Goals
             if (Array.isArray(goalsData)) {
                 setGoals(goalsData.map((g: any) => ({
                     id: g._id,
@@ -77,12 +101,7 @@ export const useStatsData = () => {
                 })));
             }
 
-            // Fetch other activities (tasks and notes) to populate history
-            const tasksRes = await fetch(`/api/tasks?t=${Date.now()}`);
-            const tasksData = await tasksRes.json();
-            const notesRes = await fetch(`/api/notes?t=${Date.now()}`);
-            const notesData = await notesRes.json();
-
+            // Process Other Activities (Tasks and Notes)
             const otherActivities: ActivityLog[] = [];
 
             if (Array.isArray(tasksData)) {
@@ -113,9 +132,7 @@ export const useStatsData = () => {
 
             setFetchedActivities(otherActivities);
 
-            // Fetch current User XP/Level
-            const xpRes = await fetch(`/api/user/xp?t=${Date.now()}`);
-            const xpData = await xpRes.json();
+            // Process User XP/Level
             if (xpData.xp !== undefined) {
                 setMetrics(prev => ({
                     ...prev,
@@ -189,7 +206,7 @@ export const useStatsData = () => {
         const { currentStreak, longestStreak } = calculateStreakFromDates(sortedDates);
         const focusScore = calculateFocusScore(sessions);
         const efficiency = calculateEfficiency(sessions);
-        const retention = 85;
+        const retention = calculateRetention(sessions);
 
         setMetrics(prev => ({
             ...prev,
@@ -542,4 +559,36 @@ function calculateEfficiency(sessions: StudySession[]): number {
     const efficiency = Math.min((avgDuration / optimalDuration) * 100, 100);
 
     return Math.round(efficiency);
+}
+// Calculate retention as day-over-day continuation rate
+// Measures: of the days the user studied, what percentage did they also study the next day?
+function calculateRetention(sessions: StudySession[]): number {
+    if (sessions.length < 2) return 0;
+
+    // Collect unique study dates
+    const studyDates = new Set<string>();
+    sessions.forEach((s) => {
+        const d = formatDateLocal(s.date);
+        if (d) studyDates.add(d);
+    });
+
+    const sortedDates = Array.from(studyDates).sort();
+    if (sortedDates.length < 2) return 0;
+
+    let continuations = 0;
+    let opportunities = sortedDates.length - 1; // exclude the last day (no "next day" to check)
+
+    for (let i = 0; i < sortedDates.length - 1; i++) {
+        const current = new Date(sortedDates[i]);
+        const next = new Date(sortedDates[i + 1]);
+        const diffDays = Math.floor(
+            (next.getTime() - current.getTime()) / (1000 * 60 * 60 * 24)
+        );
+
+        if (diffDays === 1) {
+            continuations++;
+        }
+    }
+
+    return opportunities > 0 ? Math.round((continuations / opportunities) * 100) : 0;
 }

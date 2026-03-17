@@ -16,7 +16,6 @@
  * - Check for React errors
  * - Add demo data if needed
  */
-
 // Storage keys matching those used in useStatsData.ts
 const STORAGE_KEYS = {
     SESSIONS: 'padhega_study_sessions',

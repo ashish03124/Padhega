@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from 'react';
+import { showToast } from '../components/Toast';
 
 interface UseMusicPlayerReturn {
     musicSource: 'youtube' | 'local';
@@ -66,7 +67,7 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
             setVideoId(id);
             setNowPlaying('Loading...');
         } else {
-            alert('Invalid YouTube URL');
+            showToast('Invalid YouTube URL', 'warning');
         }
     };
 
@@ -191,7 +192,7 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
             console.error('Error searching music:', error);
             // Only alert for non-timeout errors
             if (error.message !== 'Search timeout') {
-                alert(error.message || 'Failed to search music. Please try again.');
+                showToast(error.message || 'Failed to search music. Please try again.', 'error');
             }
         } finally {
             setIsSearchingMusic(false);

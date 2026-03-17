@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNoteLogger } from './useActivityLogger';
 import { useAuth } from '../context/AuthContext';
+import { showToast } from '../components/Toast';
 
 interface UseNotesReturn {
     wordCount: number;
@@ -85,7 +86,85 @@ export const useNotes = (): UseNotesReturn => {
     }, [status, noteId]);
 
     const handleFormatting = (command: string, value?: string) => {
-        document.execCommand(command, false, value);
+        const selection = window.getSelection();
+        if (!selection || selection.rangeCount === 0) {
+            // Fallback for commands that don't require a selection (undo/redo)
+            if (command === 'undo' || command === 'redo') {
+                document.execCommand(command, false, value);
+            }
+            if (notesEditorRef.current) {
+                updateWordCount(notesEditorRef.current.innerText);
+            }
+            return;
+        }
+
+        const range = selection.getRangeAt(0);
+
+        // Map inline formatting commands to HTML tag names
+        const inlineTagMap: Record<string, string> = {
+            bold: 'strong',
+            italic: 'em',
+            underline: 'u',
+            strikeThrough: 's',
+        };
+
+        if (inlineTagMap[command]) {
+            // Modern inline formatting via Range API
+            const tagName = inlineTagMap[command];
+            const selectedContent = range.extractContents();
+
+            // Check if already wrapped — if so, unwrap (toggle behavior)
+            const existingWrapper = range.startContainer.parentElement;
+            if (
+                existingWrapper &&
+                existingWrapper.tagName.toLowerCase() === tagName &&
+                existingWrapper !== notesEditorRef.current
+            ) {
+                // Unwrap: replace the wrapper with its children
+                const parent = existingWrapper.parentNode;
+                if (parent) {
+                    while (existingWrapper.firstChild) {
+                        parent.insertBefore(existingWrapper.firstChild, existingWrapper);
+                    }
+                    parent.removeChild(existingWrapper);
+                }
+            } else {
+                // Wrap selection in the formatting element
+                const wrapper = document.createElement(tagName);
+                wrapper.appendChild(selectedContent);
+                range.insertNode(wrapper);
+
+                // Move selection after the inserted node
+                selection.removeAllRanges();
+                const newRange = document.createRange();
+                newRange.selectNodeContents(wrapper);
+                newRange.collapse(false);
+                selection.addRange(newRange);
+            }
+        } else if (command === 'formatBlock' && value) {
+            // Block formatting via DOM manipulation
+            // Extract tag name from value like '<h1>', '<blockquote>'
+            const tagMatch = value.match(/^<(\w+)>$/);
+            if (tagMatch) {
+                const blockTag = tagMatch[1];
+                const selectedContent = range.extractContents();
+                const blockElement = document.createElement(blockTag);
+                blockElement.appendChild(selectedContent);
+                range.insertNode(blockElement);
+
+                // Move cursor inside the new block
+                selection.removeAllRanges();
+                const newRange = document.createRange();
+                newRange.selectNodeContents(blockElement);
+                newRange.collapse(false);
+                selection.addRange(newRange);
+            }
+        } else {
+            // Fallback to execCommand for complex operations:
+            // insertUnorderedList, insertOrderedList, justifyLeft/Center/Right, undo, redo
+            document.execCommand(command, false, value);
+        }
+
         if (notesEditorRef.current) {
             updateWordCount(notesEditorRef.current.innerText);
         }
@@ -194,7 +273,7 @@ export const useNotes = (): UseNotesReturn => {
 
     const generateAISuggestion = async () => {
         if (!notesEditorRef.current?.innerText.trim()) {
-            alert('Please write some notes first!');
+            showToast('Please write some notes first!', 'warning');
             return;
         }
 
@@ -207,7 +286,7 @@ export const useNotes = (): UseNotesReturn => {
             setShowAIPanel(true);
         } catch (error) {
             console.error('Error generating AI suggestion:', error);
-            alert('Error generating AI suggestion. Please check your API key.');
+            showToast('Error generating AI suggestion. Please check your API key.', 'error');
         } finally {
             setIsGenerating(false);
         }
@@ -215,7 +294,7 @@ export const useNotes = (): UseNotesReturn => {
 
     const enhanceNotesWithAI = async () => {
         if (!notesEditorRef.current?.innerText.trim()) {
-            alert('Please write some notes first!');
+            showToast('Please write some notes first!', 'warning');
             return;
         }
 
@@ -230,7 +309,7 @@ export const useNotes = (): UseNotesReturn => {
             }
         } catch (error) {
             console.error('Error enhancing notes:', error);
-            alert('Error enhancing notes. Please check your API key.');
+            showToast('Error enhancing notes. Please check your API key.', 'error');
         } finally {
             setIsGenerating(false);
         }
@@ -238,7 +317,7 @@ export const useNotes = (): UseNotesReturn => {
 
     const summarizeNotes = async (type: 'bullet' | 'short' | 'detailed') => {
         if (!notesEditorRef.current?.innerText.trim()) {
-            alert('Please write some notes first!');
+            showToast('Please write some notes first!', 'warning');
             return;
         }
 
@@ -263,7 +342,7 @@ export const useNotes = (): UseNotesReturn => {
             setShowAIPanel(true);
         } catch (error) {
             console.error('Error summarizing notes:', error);
-            alert('Error summarizing notes.');
+            showToast('Error summarizing notes.', 'error');
         } finally {
             setIsGenerating(false);
         }
@@ -271,7 +350,7 @@ export const useNotes = (): UseNotesReturn => {
 
     const generateFlashcards = async () => {
         if (!notesEditorRef.current?.innerText.trim()) {
-            alert('Please write some notes first!');
+            showToast('Please write some notes first!', 'warning');
             return;
         }
 
@@ -284,7 +363,7 @@ export const useNotes = (): UseNotesReturn => {
             setShowAIPanel(true);
         } catch (error) {
             console.error('Error generating flashcards:', error);
-            alert('Error generating flashcards.');
+            showToast('Error generating flashcards.', 'error');
         } finally {
             setIsGenerating(false);
         }
@@ -292,7 +371,7 @@ export const useNotes = (): UseNotesReturn => {
 
     const generateQuiz = async () => {
         if (!notesEditorRef.current?.innerText.trim()) {
-            alert('Please write some notes first!');
+            showToast('Please write some notes first!', 'warning');
             return;
         }
 
@@ -305,7 +384,7 @@ export const useNotes = (): UseNotesReturn => {
             setShowAIPanel(true);
         } catch (error) {
             console.error('Error generating quiz:', error);
-            alert('Error generating quiz.');
+            showToast('Error generating quiz.', 'error');
         } finally {
             setIsGenerating(false);
         }
@@ -313,7 +392,7 @@ export const useNotes = (): UseNotesReturn => {
 
     const checkGrammar = async () => {
         if (!notesEditorRef.current?.innerText.trim()) {
-            alert('Please write some notes first!');
+            showToast('Please write some notes first!', 'warning');
             return;
         }
 
@@ -326,7 +405,7 @@ export const useNotes = (): UseNotesReturn => {
             setShowAIPanel(true);
         } catch (error) {
             console.error('Error checking grammar:', error);
-            alert('Error checking grammar.');
+            showToast('Error checking grammar.', 'error');
         } finally {
             setIsGenerating(false);
         }
@@ -334,7 +413,7 @@ export const useNotes = (): UseNotesReturn => {
 
     const extractKeyTerms = async () => {
         if (!notesEditorRef.current?.innerText.trim()) {
-            alert('Please write some notes first!');
+            showToast('Please write some notes first!', 'warning');
             return;
         }
 
@@ -347,7 +426,7 @@ export const useNotes = (): UseNotesReturn => {
             setShowAIPanel(true);
         } catch (error) {
             console.error('Error extracting key terms:', error);
-            alert('Error extracting key terms.');
+            showToast('Error extracting key terms.', 'error');
         } finally {
             setIsGenerating(false);
         }

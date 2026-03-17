@@ -113,12 +113,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsLoading(true);
         setError(null);
         try {
-            // Placeholder for real password reset logic
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            const response = await fetch('/api/auth/reset-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                setError(data.error || 'Failed to send reset email');
+                setIsLoading(false);
+                return false;
+            }
+
             setIsLoading(false);
             return true;
         } catch (err) {
-            setError('Failed to send reset email');
+            setError('An unexpected error occurred. Please try again.');
             setIsLoading(false);
             return false;
         }

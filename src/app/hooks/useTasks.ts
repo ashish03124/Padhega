@@ -5,7 +5,7 @@ import { useTaskLogger } from './useActivityLogger';
 import { useAuth } from '../context/AuthContext';
 
 interface Task {
-    id: number;
+    id: string;
     text: string;
     completed: boolean;
     priority: 'high' | 'medium' | 'low';
@@ -30,8 +30,8 @@ interface UseTasksReturn {
     setFilterCategory: (category: string) => void;
     setFilterPriority: (priority: string) => void;
     addTask: () => void;
-    toggleTask: (id: number) => void;
-    deleteTask: (id: number) => void;
+    toggleTask: (id: string) => void;
+    deleteTask: (id: string) => void;
     completedCount: number;
     totalCount: number;
     filteredTasks: Task[];
@@ -159,7 +159,7 @@ export const useTasks = (): UseTasksReturn => {
         }
     };
 
-    const toggleTask = async (id: any) => {
+    const toggleTask = async (id: string) => {
         const task = tasks.find(t => t.id === id);
         if (!task || status !== 'authenticated') return;
 
@@ -200,7 +200,7 @@ export const useTasks = (): UseTasksReturn => {
         }
     };
 
-    const deleteTask = async (id: any) => {
+    const deleteTask = async (id: string) => {
         if (status !== 'authenticated') return;
 
         try {

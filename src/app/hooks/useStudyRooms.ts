@@ -2,68 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { StudyRoom, CreateRoomData, Participant } from '../lib/studyRoomTypes';
-import { getUserData, setUserData } from '../lib/userStorage';
 import { useAuth } from '../context/AuthContext';
+import { showToast } from '../components/Toast';
 
 const STORAGE_KEY = 'study_rooms';
-
-// Generate demo rooms for initial experience
-const generateDemoRooms = (): StudyRoom[] => {
-    const now = new Date();
-    return [
-        {
-            id: 'demo-1',
-            name: 'Math Study Group',
-            description: 'Working on calculus problems together',
-            subject: 'Mathematics',
-            createdBy: {
-                id: 'demo-user-1',
-                name: 'Alex Chen',
-                email: 'alex@example.com',
-            },
-            createdAt: new Date(now.getTime() - 15 * 60 * 1000), // 15 min ago
-            privacy: 'public',
-            maxParticipants: 15,
-            currentParticipantCount: 8,
-            participants: [],
-            status: 'active',
-        },
-        {
-            id: 'demo-2',
-            name: 'Physics Finals Prep',
-            description: 'Reviewing for upcoming physics final exam',
-            subject: 'Physics',
-            createdBy: {
-                id: 'demo-user-2',
-                name: 'Sarah Martinez',
-                email: 'sarah@example.com',
-            },
-            createdAt: new Date(now.getTime() - 45 * 60 * 1000), // 45 min ago
-            privacy: 'public',
-            maxParticipants: 10,
-            currentParticipantCount: 5,
-            participants: [],
-            status: 'active',
-        },
-        {
-            id: 'demo-3',
-            name: 'Chemistry Lab Partners',
-            description: 'Collaborative study for organic chemistry',
-            subject: 'Chemistry',
-            createdBy: {
-                id: 'demo-user-3',
-                name: 'Michael Kumar',
-                email: 'michael@example.com',
-            },
-            createdAt: new Date(now.getTime() - 30 * 60 * 1000), // 30 min ago
-            privacy: 'private',
-            maxParticipants: 6,
-            currentParticipantCount: 3,
-            participants: [],
-            status: 'active',
-        },
-    ];
-};
 
 export const useStudyRooms = () => {
     const [rooms, setRooms] = useState<StudyRoom[]>([]);
@@ -111,7 +53,7 @@ export const useStudyRooms = () => {
 
     const createRoom = useCallback(async (roomData: CreateRoomData): Promise<StudyRoom | null> => {
         if (status !== 'authenticated') {
-            alert('Please sign in to create a room');
+            showToast('Please sign in to create a room', 'warning');
             return null;
         }
 
@@ -173,7 +115,7 @@ export const useStudyRooms = () => {
 
     const joinRoom = useCallback(async (roomId: string, password?: string): Promise<boolean> => {
         if (status !== 'authenticated') {
-            alert('Please sign in to join a room');
+            showToast('Please sign in to join a room', 'warning');
             return false;
         }
 

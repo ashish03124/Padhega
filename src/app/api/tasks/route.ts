@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { text, category, dueDate } = await request.json();
+        const { text, category, priority, dueDate } = await request.json();
 
         if (!text) {
             return NextResponse.json({ error: 'Task text is required' }, { status: 400 });
@@ -46,6 +46,7 @@ export async function POST(request: NextRequest) {
             userId: session.user.id,
             text,
             isCompleted: false,
+            priority: priority || 'medium',
             category: category || 'General',
             dueDate: dueDate ? new Date(dueDate) : undefined,
         });
@@ -67,7 +68,7 @@ export async function PATCH(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { id, text, isCompleted, category, dueDate } = await request.json();
+        const { id, text, isCompleted, category, priority, dueDate } = await request.json();
         if (!id) return NextResponse.json({ error: 'Task ID is required' }, { status: 400 });
 
         const updateData: any = {};
@@ -77,6 +78,7 @@ export async function PATCH(request: NextRequest) {
             updateData.completedAt = isCompleted ? new Date() : null;
         }
         if (category !== undefined) updateData.category = category;
+        if (priority !== undefined) updateData.priority = priority;
         if (dueDate !== undefined) updateData.dueDate = dueDate ? new Date(dueDate) : null;
 
         await connectToDatabase();

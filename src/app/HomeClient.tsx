@@ -11,6 +11,7 @@ import TimerSection from './components/sections/TimerSection';
 import MusicSection from './components/sections/MusicSection';
 import NotesSection from './components/sections/NotesSection';
 import TasksSection from './components/sections/TasksSection';
+import StudyGroupsSection from './components/sections/StudyGroupsSection';
 import MotivationSection from './components/sections/MotivationSection';
 
 const HomeClient: React.FC = () => {
@@ -39,11 +40,16 @@ const HomeClient: React.FC = () => {
                     <NotesSection {...notes} />
                 </div>
 
-                {/* Row 3: Tasks + Motivation (50/50) */}
+                {/* Row 3: Tasks + Study Groups (50/50) */}
                 <div className="bento-item">
                     <TasksSection {...tasks} />
                 </div>
                 <div className="bento-item">
+                    <StudyGroupsSection />
+                </div>
+
+                {/* Row 4: Motivation (Full Width) */}
+                <div className="bento-item bento-row-full">
                     <MotivationSection />
                 </div>
             </main>

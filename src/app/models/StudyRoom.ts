@@ -78,8 +78,6 @@ const StudyRoomSchema = new Schema<IStudyRoom>(
 
 // Index for fetching active public rooms
 StudyRoomSchema.index({ isActive: 1, privacy: 1 });
-// Index for finding room by roomId
-StudyRoomSchema.index({ roomId: 1 });
 
 const StudyRoom: Model<IStudyRoom> =
     mongoose.models.StudyRoom || mongoose.model<IStudyRoom>('StudyRoom', StudyRoomSchema);

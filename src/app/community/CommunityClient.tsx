@@ -455,23 +455,29 @@ const CommunityClient: React.FC = () => {
                             {/* 3D Floating Cards representing community activity */}
                             <div className="hero-card-float float-1">
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                                    <div style={{ width: '30px', height: '30px', borderRadius: '0', background: '#4a7c3f' }}></div>
-                                    <div style={{ fontSize: '0.8rem', opacity: 0.8 }}>Sarah posted</div>
+                                    <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '0.7rem' }}>
+                                        <i className="fas fa-user"></i>
+                                    </div>
+                                    <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>Sarah posted</div>
                                 </div>
-                                <div style={{ fontSize: '0.9rem', opacity: 0.7 }}>"How do I start with Machine Learning?"</div>
+                                <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>&quot;How do I start with Machine Learning?&quot;</div>
                             </div>
 
                             <div className="hero-card-float float-2">
-                                <div style={{ color: '#305229', fontWeight: 'bold' }}>New Solution 🚀</div>
-                                <div style={{ fontSize: '0.8rem', opacity: 0.7, marginTop: '5px' }}>Optimization algorithm explanations...</div>
+                                <div style={{ color: '#10b981', fontWeight: '800', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    New Solution <span style={{ fontSize: '1.2rem' }}>🚀</span>
+                                </div>
+                                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '8px', lineHeight: '1.4' }}>Optimization algorithm explanations...</div>
                             </div>
 
                             <div className="hero-card-float float-3">
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                    <i className="fas fa-medal" style={{ color: '#F59E0B', fontSize: '1.5rem' }}></i>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <div style={{ width: '40px', height: '40px', background: 'rgba(245, 158, 11, 0.15)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <i className="fas fa-medal" style={{ color: '#F59E0B', fontSize: '1.2rem' }}></i>
+                                    </div>
                                     <div>
-                                        <div style={{ fontSize: '0.8rem', opacity: 0.8 }}>Weekly Challenge</div>
-                                        <div style={{ fontSize: '0.7rem', opacity: 0.7 }}>342 Participants</div>
+                                        <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>Weekly Challenge</div>
+                                        <div style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 500 }}>342 Participants</div>
                                     </div>
                                 </div>
                             </div>
@@ -600,11 +606,11 @@ const CommunityClient: React.FC = () => {
                         <h2 className="text-gradient section-large-title">Member Stories</h2>
 
                         <div className="glass-card" style={{ maxWidth: '800px', margin: '0 auto', position: 'relative', minHeight: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <div style={{ position: 'absolute', top: '2rem', left: '2rem', fontSize: '4rem', opacity: 0.1, color: 'var(--neon-purple)' }}>"</div>
+                            <div style={{ position: 'absolute', top: '2rem', left: '2rem', fontSize: '4rem', opacity: 0.1, color: 'var(--neon-purple)' }}>&quot;</div>
 
                             <div style={{ zIndex: 2 }}>
                                 <p className="testimonial-text">
-                                    "{communityData.testimonials[currentTestimonial].text}"
+                                    &quot;{communityData.testimonials[currentTestimonial].text}&quot;
                                 </p>
 
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>

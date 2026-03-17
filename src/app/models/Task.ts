@@ -5,6 +5,7 @@ export interface ITask {
     userId: mongoose.Types.ObjectId;
     text: string;
     isCompleted: boolean;
+    priority: 'high' | 'medium' | 'low';
     category?: string;
     dueDate?: Date;
     createdAt: Date;
@@ -27,6 +28,11 @@ const TaskSchema = new Schema<ITask>(
         isCompleted: {
             type: Boolean,
             default: false,
+        },
+        priority: {
+            type: String,
+            enum: ['high', 'medium', 'low'],
+            default: 'medium',
         },
         category: {
             type: String,

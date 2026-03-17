@@ -135,11 +135,28 @@ export const authOptions: NextAuthOptions = {
 
             // Add user info to token on sign in
             if (user) {
-                token.id = user.id;
                 token.email = user.email;
                 token.name = user.name;
-                if (user.image) {
-                    token.image = getSafeImageUrl(user.image, user.id);
+
+                // For OAuth users, fetch the DB user to get the correct MongoDB _id and stored image
+                if (account?.provider !== 'credentials') {
+                    await connectToDatabase();
+                    const dbUser = await User.findOne({ email: user.email });
+                    if (dbUser) {
+                        token.id = dbUser._id.toString();
+                        // If user already has a custom image in DB, use it instead of the provider's default
+                        if (dbUser.image) {
+                            token.image = getSafeImageUrl(dbUser.image, dbUser._id.toString());
+                        } else {
+                            token.image = getSafeImageUrl(user.image as string, dbUser._id.toString());
+                        }
+                    } else {
+                        token.id = user.id;
+                        token.image = user.image;
+                    }
+                } else {
+                    token.id = user.id;
+                    token.image = getSafeImageUrl(user.image as string, user.id);
                 }
             }
 

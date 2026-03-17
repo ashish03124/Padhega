@@ -1,13 +1,14 @@
 "use client";
 
 import Link from 'next/link';
+import { showToast } from '../components/Toast';
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
-    alert('Thank you for subscribing!');
+    showToast('Thank you for subscribing! 🎉', 'success');
   };
 
   return (

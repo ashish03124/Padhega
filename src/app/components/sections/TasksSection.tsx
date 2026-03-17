@@ -3,7 +3,7 @@ import './tasks-styles.css';
 import { CATEGORIES } from '../../../app/hooks/useTasks';
 
 interface Task {
-    id: number;
+    id: string;
     text: string;
     completed: boolean;
     priority: 'high' | 'medium' | 'low';
@@ -28,8 +28,8 @@ interface TasksSectionProps {
     setFilterCategory: (category: string) => void;
     setFilterPriority: (priority: string) => void;
     addTask: () => void;
-    toggleTask: (id: number) => void;
-    deleteTask: (id: number) => void;
+    toggleTask: (id: string) => void;
+    deleteTask: (id: string) => void;
     completedCount: number;
     totalCount: number;
     filteredTasks: Task[];
@@ -56,7 +56,7 @@ const TasksSection: React.FC<TasksSectionProps> = ({
     totalCount,
     filteredTasks,
 }) => {
-    const [deletingTaskId, setDeletingTaskId] = useState<number | null>(null);
+    const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
     const [showInputOptions, setShowInputOptions] = useState(false);
     const [showFilters, setShowFilters] = useState(false);
 
@@ -67,7 +67,7 @@ const TasksSection: React.FC<TasksSectionProps> = ({
     const circumference = 2 * Math.PI * radius;
     const strokeDashoffset = circumference - (completionPercentage / 100) * circumference;
 
-    const handleDeleteTask = (id: number) => {
+    const handleDeleteTask = (id: string) => {
         setDeletingTaskId(id);
         setTimeout(() => {
             deleteTask(id);
