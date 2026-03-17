@@ -40,6 +40,7 @@ export const useNotes = (): UseNotesReturn => {
     const [noteId, setNoteId] = useState<string | null>(null);
 
     const notesEditorRef = useRef<HTMLDivElement>(null);
+    const lastSyncedContent = useRef<string>('');
 
     // Activity logger for tracking note actions
     const { logNoteCreated, logNoteUpdated } = useNoteLogger();
@@ -59,6 +60,7 @@ export const useNotes = (): UseNotesReturn => {
                     setNoteId(latestNote._id);
                     if (notesEditorRef.current) {
                         notesEditorRef.current.innerHTML = latestNote.content;
+                        lastSyncedContent.current = latestNote.content;
                         updateWordCount(latestNote.content);
                         hasInitialNotes.current = true;
                         setLastSaved('Last synced at ' + new Date(latestNote.updatedAt).toLocaleTimeString());
@@ -180,7 +182,7 @@ export const useNotes = (): UseNotesReturn => {
         if (!notesEditorRef.current || status !== 'authenticated') return;
 
         const content = notesEditorRef.current.innerHTML;
-        if (!content.trim()) return;
+        if (!content.trim() || content === lastSyncedContent.current) return;
 
         try {
             const method = noteId ? 'PATCH' : 'POST';
@@ -198,6 +200,7 @@ export const useNotes = (): UseNotesReturn => {
                 const data = await response.json();
                 setNoteId(data._id);
                 setLastSaved(new Date().toLocaleTimeString());
+                lastSyncedContent.current = content;
 
                 // Log activity
                 if (hasInitialNotes.current) {

@@ -95,6 +95,8 @@ const Header: React.FC = () => {
         <button className="hamburger-btn" onClick={toggleMenu} aria-label="Open Menu">
           <i className="fas fa-bars"></i>
         </button>
+        <img src="/images/logo.png" alt="Padhega" className="mobile-logo-img dark-logo" />
+        <img src="/images/logo1.jpg" alt="Padhega" className="mobile-logo-img light-logo" />
       </div>
 
       <div className="header-right">

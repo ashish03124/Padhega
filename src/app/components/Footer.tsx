@@ -16,7 +16,8 @@ const Footer: React.FC = () => {
       <div className="footer-content">
         <div className="footer-brand">
           <div className="footer-logo">
-            <img src="/logo.svg" alt="Padhega Logo" className="footer-logo-img" />
+            <img src="/images/logo.png" alt="Padhega Logo" className="footer-logo-img dark-logo" />
+            <img src="/images/logo1.jpg" alt="Padhega Logo" className="footer-logo-img light-logo" />
             <span className="footer-logo-text">PADHEGA</span>
           </div>
           <p className="footer-tagline">Level up your learning experience with AI-powered focus tools and collaborative study rooms.</p>
@@ -79,13 +80,7 @@ const Footer: React.FC = () => {
         </div>
       </div>
 
-      <div className="copyright-bar">
-        <span>&copy; {currentYear} PADHEGA. Designed for modern students.</span>
-        <div className="footer-bottom-links">
-          <Link href="/">Status</Link>
-          <Link href="/">Help Center</Link>
-        </div>
-      </div>
+
     </footer>
   );
 };

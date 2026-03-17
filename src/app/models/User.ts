@@ -9,6 +9,8 @@ export interface IUser {
     provider: 'credentials' | 'google' | 'github';
     xp: number;
     level: number;
+    resetToken?: string;
+    resetTokenExpiry?: Date;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -49,6 +51,14 @@ const UserSchema = new Schema<IUser>(
         level: {
             type: Number,
             default: 1,
+        },
+        resetToken: {
+            type: String,
+            required: false,
+        },
+        resetTokenExpiry: {
+            type: Date,
+            required: false,
         },
     },
     {

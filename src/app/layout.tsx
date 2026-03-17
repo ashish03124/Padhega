@@ -22,6 +22,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Padhega - Study With Me",
   description: "Study together with Pomodoro timer, resources, and focus music",
+  icons: {
+    icon: '/images/logo.png',
+  },
 };
 
 export default function RootLayout({

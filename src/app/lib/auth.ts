@@ -61,11 +61,15 @@ export const authOptions: NextAuthOptions = {
                         throw new Error("Invalid email or password");
                     }
 
+                    const safeImage = (user.image && user.image.startsWith('data:image'))
+                        ? `/api/user/avatar?id=${user._id}&v=${Date.now()}`
+                        : user.image;
+
                     return {
                         id: user._id.toString(),
                         email: user.email,
                         name: user.name,
-                        image: user.image,
+                        image: safeImage,
                     };
                 } catch (error: any) {
                     console.error("Auth error:", error);
@@ -116,12 +120,15 @@ export const authOptions: NextAuthOptions = {
 
         async jwt({ token, user, account, trigger, session }) {
             // Function to safely inject correct image URL instead of raw base64
-            const getSafeImageUrl = (imageSource: string, userId: string) => {
-                if (imageSource && imageSource.startsWith('data:image')) {
-                    // Cache buster ensures updates reflect immediately
+            const getSafeImageUrl = (imageSource: any, userId: string) => {
+                if (!imageSource) return imageSource;
+                
+                const strSource = String(imageSource);
+                // If it's a data URL or just a very long string, replace it with the API URL
+                if (strSource.startsWith('data:image') || strSource.length > 500) {
                     return `/api/user/avatar?id=${userId}&v=${Date.now()}`;
                 }
-                return imageSource;
+                return strSource;
             };
 
             // If the user manually triggered a session update via `update()`
@@ -137,6 +144,7 @@ export const authOptions: NextAuthOptions = {
             if (user) {
                 token.email = user.email;
                 token.name = user.name;
+                token.id = user.id;
 
                 // For OAuth users, fetch the DB user to get the correct MongoDB _id and stored image
                 if (account?.provider !== 'credentials') {
@@ -144,25 +152,25 @@ export const authOptions: NextAuthOptions = {
                     const dbUser = await User.findOne({ email: user.email });
                     if (dbUser) {
                         token.id = dbUser._id.toString();
-                        // If user already has a custom image in DB, use it instead of the provider's default
-                        if (dbUser.image) {
-                            token.image = getSafeImageUrl(dbUser.image, dbUser._id.toString());
-                        } else {
-                            token.image = getSafeImageUrl(user.image as string, dbUser._id.toString());
-                        }
+                        token.image = getSafeImageUrl(dbUser.image || user.image, token.id);
                     } else {
-                        token.id = user.id;
-                        token.image = user.image;
+                        token.image = getSafeImageUrl(user.image, user.id);
                     }
                 } else {
-                    token.id = user.id;
-                    token.image = getSafeImageUrl(user.image as string, user.id);
+                    // user object from authorize
+                    token.image = getSafeImageUrl(user.image, user.id);
                 }
             }
 
             // Add OAuth provider info
             if (account) {
                 token.provider = account.provider;
+            }
+
+            // FINAL SAFETY CHECK: If token.image is still huge for some reason, kill it
+            if (token.image && String(token.image).length > 1000) {
+                console.error("CRITICAL: Token image still huge after sanitization. Stripping it.");
+                token.image = token.id ? `/api/user/avatar?id=${token.id}` : null;
             }
 
             return token;

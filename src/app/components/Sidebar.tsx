@@ -26,6 +26,8 @@ const Sidebar: React.FC = () => {
             )}
             <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
                 <div className="sidebar-logo">
+                    <img src="/images/logo.png" alt="Padhega Logo" className="logo-img dark-logo" />
+                    <img src="/images/logo1.jpg" alt="Padhega Logo" className="logo-img light-logo" />
                     <h1>Padhega</h1>
                 </div>
                 <nav className="sidebar-nav">

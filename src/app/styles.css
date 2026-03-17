@@ -88,6 +88,49 @@ body {
   -webkit-text-fill-color: transparent;
 }
 
+.logo-img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  margin-right: 10px;
+}
+
+.dark-logo {
+  display: inline-block; /* Satisfies lint and ensures consistent layout */
+}
+
+.light-logo {
+  display: none !important;
+}
+
+[data-theme='light'] .light-logo {
+  display: block !important;
+}
+
+[data-theme='light'] .dark-logo {
+  display: none !important;
+}
+
+.footer-logo-img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.mobile-logo-img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  margin-left: 10px;
+}
+
+.auth-logo {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  margin: 0 auto 1.5rem;
+}
+
 .sidebar-nav {
   flex: 1;
   padding: 2rem 1rem;
@@ -291,7 +334,8 @@ body {
 .notification-dropdown {
   position: absolute;
   top: calc(100% + 1rem);
-  right: -10px; /* Aligned better with the bell icon */
+  right: -10px;
+  /* Aligned better with the bell icon */
   width: 360px;
   background: var(--card-bg);
   backdrop-filter: blur(30px);
@@ -310,7 +354,8 @@ body {
   content: '';
   position: absolute;
   top: -6px;
-  right: 22px; /* Centered under the bell */
+  right: 22px;
+  /* Centered under the bell */
   width: 12px;
   height: 12px;
   background: var(--card-bg);
@@ -389,9 +434,20 @@ body {
   flex-shrink: 0;
 }
 
-.notif-icon-circle.success { color: #10b981; background: rgba(16, 185, 129, 0.1); }
-.notif-icon-circle.info { color: #3b82f6; background: rgba(59, 130, 246, 0.1); }
-.notif-icon-circle.warning { color: #f59e0b; background: rgba(245, 158, 11, 0.1); }
+.notif-icon-circle.success {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.notif-icon-circle.info {
+  color: #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.notif-icon-circle.warning {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+}
 
 .notif-content {
   flex: 1;

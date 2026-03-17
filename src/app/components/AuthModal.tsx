@@ -123,6 +123,8 @@ const AuthModal: React.FC = () => {
                 </button>
 
                 <div className="auth-modal-header">
+                    <img src="/images/logo.png" alt="Padhega Logo" className="auth-logo dark-logo" />
+                    <img src="/images/logo1.jpg" alt="Padhega Logo" className="auth-logo light-logo" />
                     <h2>
                         {authMode === 'login' && '👋 Welcome Back'}
                         {authMode === 'signup' && '🎓 Join Padhega'}
