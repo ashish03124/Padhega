@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-const yts = require('yt-search');
+import yts from 'yt-search';
 
 // Add timeout wrapper for the search
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
