@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  transpilePackages: ['yt-search', 'cheerio'],
+  serverExternalPackages: ['yt-search', 'cheerio'],
   images: {
     remotePatterns: [
       {
