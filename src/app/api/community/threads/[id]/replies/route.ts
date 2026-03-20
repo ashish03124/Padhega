@@ -31,14 +31,14 @@ export async function POST(
             createdAt: new Date(),
         };
 
-        thread.replies.push(newReply as any);
+        thread.replies.push(newReply as { authorId: string; authorName: string; text: string; createdAt: Date });
         thread.lastActive = new Date();
         await thread.save();
 
         const addedReply = thread.replies[thread.replies.length - 1];
         return NextResponse.json(addedReply);
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }
 }
 
@@ -62,12 +62,12 @@ export async function DELETE(
             return NextResponse.json({ error: 'Thread not found' }, { status: 404 });
         }
 
-        const replyIndex = thread.replies.findIndex(r => (r as any)._id.toString() === replyId);
+        const replyIndex = thread.replies.findIndex(r => (r as { _id: { toString(): string } })._id.toString() === replyId);
         if (replyIndex === -1) {
             return NextResponse.json({ error: 'Reply not found' }, { status: 404 });
         }
 
-        if (thread.replies[replyIndex].authorId !== (session.user as any).id) {
+        if (thread.replies[replyIndex].authorId !== (session.user as { id: string }).id) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
         }
 
@@ -75,7 +75,7 @@ export async function DELETE(
         await thread.save();
 
         return NextResponse.json({ message: 'Reply deleted successfully' });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }
 }

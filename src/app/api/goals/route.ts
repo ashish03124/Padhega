@@ -89,7 +89,7 @@ export async function PATCH(request: NextRequest) {
         if (!updatedGoal) return NextResponse.json({ error: 'Goal not found' }, { status: 404 });
 
         return NextResponse.json(updatedGoal);
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('API Error (PATCH goals):', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }

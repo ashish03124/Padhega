@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import { StudyRoom, CreateRoomData, Participant } from '../lib/studyRoomTypes';
+import { StudyRoom, CreateRoomData, Participant, RoomPrivacy } from '../lib/studyRoomTypes';
 import { useAuth } from '../context/AuthContext';
 import { showToast } from '../components/Toast';
 
@@ -33,7 +33,7 @@ export const useStudyRooms = () => {
                             email: r.createdBy?.email || r.createdByEmail || '',
                         },
                         createdAt: new Date(r.createdAt),
-                        privacy: r.privacy,
+                        privacy: r.privacy as RoomPrivacy,
                         maxParticipants: r.maxParticipants,
                         currentParticipantCount: r.participants.length,
                         participants: r.participants.map((pId: string) => ({ userId: pId } as any)),

@@ -9,8 +9,8 @@ export async function GET() {
         await connectDB();
         const threads = await Thread.find({}).sort({ lastActive: -1 });
         return NextResponse.json(threads);
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }
 }
 
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
         });
 
         return NextResponse.json(newThread, { status: 201 });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }
 }

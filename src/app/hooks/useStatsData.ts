@@ -81,7 +81,7 @@ export const useStatsData = () => {
                     subject: s.subject,
                     type: s.type,
                     duration: s.duration,
-                    date: s.date,
+                    date: String(s.date),
                     timestamp: new Date(s.date).getTime(),
                 })));
             }

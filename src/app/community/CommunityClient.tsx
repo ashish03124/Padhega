@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import './community.css';
 
@@ -8,7 +8,7 @@ const CommunityClient: React.FC = () => {
     const { user, setShowAuthModal } = useAuth();
     const [currentTestimonial, setCurrentTestimonial] = useState(0);
     const [displayedThreads, setDisplayedThreads] = useState(4);
-    const [activeEventFilter, setActiveEventFilter] = useState('all');
+    const [activeEventFilter] = useState('all');
     const [showNewThreadModal, setShowNewThreadModal] = useState(false);
     const [selectedThread, setSelectedThread] = useState<any | null>(null);
     const [showThreadModal, setShowThreadModal] = useState(false);
@@ -213,21 +213,12 @@ const CommunityClient: React.FC = () => {
         fetchThreads();
     }, []);
 
-    // Utility function
-    const formatNumber = (num: number): string => {
-        if (num >= 1000) {
-            return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
-        }
-        return num.toString();
-    };
-
-    // Handlers
-    const showTestimonial = (index: number) => {
+    const showTestimonial = useCallback((index: number) => {
         let newIndex = index;
         if (index < 0) newIndex = communityData.testimonials.length - 1;
         if (index >= communityData.testimonials.length) newIndex = 0;
         setCurrentTestimonial(newIndex);
-    };
+    }, [communityData.testimonials.length]);
 
     const handleNewThread = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -258,7 +249,7 @@ const CommunityClient: React.FC = () => {
                 setShowNewThreadModal(false);
                 form.reset();
             }
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Failed to create thread:', error);
         }
     };
@@ -296,7 +287,7 @@ const CommunityClient: React.FC = () => {
                 setLocalThreads(prev => prev.map(t => t._id === updatedThread._id ? updatedThread : t));
                 form.reset();
             }
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Failed to post reply:', error);
         }
     };
@@ -385,36 +376,18 @@ const CommunityClient: React.FC = () => {
         setShowThreadModal(true);
     };
 
-    const toggleRSVP = (id: number) => {
-        // Check authentication
-        if (!user) {
-            setShowAuthModal(true);
-            return;
-        }
-
-        setLocalEvents(prev => prev.map(ev => {
-            if (ev.id === id) {
-                return {
-                    ...ev,
-                    isRsvped: !ev.isRsvped,
-                    rsvpCount: ev.isRsvped ? ev.rsvpCount - 1 : ev.rsvpCount + 1
-                };
-            }
-            return ev;
-        }));
-    };
+    // toggleRSVP removed as it was unused
 
     const filteredEvents = activeEventFilter === 'all'
         ? localEvents
         : localEvents.filter(event => event.type === activeEventFilter);
 
-    // Auto-rotate testimonials
     useEffect(() => {
         const interval = setInterval(() => {
             showTestimonial(currentTestimonial + 1);
         }, 5000);
         return () => clearInterval(interval);
-    }, [currentTestimonial]);
+    }, [currentTestimonial, showTestimonial]);
 
     return (
         <>

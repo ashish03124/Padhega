@@ -40,11 +40,11 @@ export async function GET(request: Request) {
                 },
             }
         );
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('YouTube Search Error:', error);
 
         // Specific timeout error message
-        if (error.message === 'Search timeout') {
+        if (error instanceof Error && error.message === 'Search timeout') {
             return NextResponse.json(
                 { error: 'Search is taking too long. Please try again or use a different search term.' },
                 { status: 504 }

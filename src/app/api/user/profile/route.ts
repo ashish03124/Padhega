@@ -78,7 +78,7 @@ export async function PUT(request: NextRequest) {
             }
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Update profile error:', error);
         return NextResponse.json(
             { error: 'Internal server error' },

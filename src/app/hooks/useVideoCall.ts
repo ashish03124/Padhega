@@ -32,6 +32,69 @@ export const useVideoCall = (roomUrl?: string) => {
 
     const callRef = useRef<DailyCall | null>(null);
 
+    const updateParticipants = useCallback(() => {
+        if (!callRef.current) return;
+
+        const participantsObj = callRef.current.participants();
+        const participantsList: Record<string, Participant> = {};
+
+        Object.entries(participantsObj).forEach(([id, p]: [string, any]) => {
+            participantsList[id] = {
+                user_id: p.user_id || id,
+                user_name: p.user_name || 'Guest',
+                local: p.local,
+                audio: p.audio,
+                video: p.video !== false,
+                screen: p.screen || false,
+            };
+        });
+
+        setParticipants(participantsList);
+    }, []);
+
+    const handleJoinedMeeting = useCallback(() => {
+        setCallState('joined');
+        updateParticipants();
+    }, [updateParticipants]);
+
+    const handleParticipantUpdate = useCallback(() => {
+        updateParticipants();
+    }, [updateParticipants]);
+
+    const handleParticipantLeft = useCallback((event: DailyEventObject) => {
+        setParticipants((prev) => {
+            const updated = { ...prev };
+            if (event.participant) {
+                delete updated[event.participant.session_id];
+            }
+            return updated;
+        });
+    }, []);
+
+    const handleChatMessage = useCallback((event: any) => {
+        if (event.data?.type === 'chat') {
+            const newMessage: ChatMessage = {
+                id: `${Date.now()}-${Math.random()}`,
+                fromId: event.fromId,
+                fromName: event.data.fromName || 'Anonymous',
+                message: event.data.message,
+                timestamp: Date.now(),
+            };
+            setChatMessages((prev) => [...prev, newMessage]);
+        }
+    }, []);
+
+    const handleError = useCallback((event: DailyEventObject) => {
+        console.error('Daily.co error:', event);
+        setError(event.errorMsg || 'An error occurred');
+        setCallState('error');
+    }, []);
+
+    const handleLeftMeeting = useCallback(() => {
+        setCallState('left');
+        setParticipants({});
+    }, []);
+
     // Initialize Daily.co call object
     useEffect(() => {
         if (!roomUrl) return;
@@ -70,70 +133,8 @@ export const useVideoCall = (roomUrl?: string) => {
                 callRef.current.destroy();
             }
         };
-    }, [roomUrl]);
+    }, [roomUrl, handleJoinedMeeting, handleParticipantUpdate, handleParticipantLeft, handleChatMessage, handleError, handleLeftMeeting]);
 
-    const handleJoinedMeeting = useCallback(() => {
-        setCallState('joined');
-        updateParticipants();
-    }, []);
-
-    const handleParticipantUpdate = useCallback(() => {
-        updateParticipants();
-    }, []);
-
-    const handleParticipantLeft = useCallback((event: DailyEventObject) => {
-        setParticipants((prev) => {
-            const updated = { ...prev };
-            if (event.participant) {
-                delete updated[event.participant.session_id];
-            }
-            return updated;
-        });
-    }, []);
-
-    const handleChatMessage = useCallback((event: any) => {
-        if (event.data?.type === 'chat') {
-            const newMessage: ChatMessage = {
-                id: `${Date.now()}-${Math.random()}`,
-                fromId: event.fromId,
-                fromName: event.data.fromName || 'Anonymous',
-                message: event.data.message,
-                timestamp: Date.now(),
-            };
-            setChatMessages((prev) => [...prev, newMessage]);
-        }
-    }, []);
-
-    const handleError = useCallback((event: DailyEventObject) => {
-        console.error('Daily.co error:', event);
-        setError(event.errorMsg || 'An error occurred');
-        setCallState('error');
-    }, []);
-
-    const handleLeftMeeting = useCallback(() => {
-        setCallState('left');
-        setParticipants({});
-    }, []);
-
-    const updateParticipants = () => {
-        if (!callRef.current) return;
-
-        const participantsObj = callRef.current.participants();
-        const participantsList: Record<string, Participant> = {};
-
-        Object.entries(participantsObj).forEach(([id, p]: [string, any]) => {
-            participantsList[id] = {
-                user_id: p.user_id || id,
-                user_name: p.user_name || 'Guest',
-                local: p.local,
-                audio: p.audio,
-                video: p.video !== false,
-                screen: p.screen || false,
-            };
-        });
-
-        setParticipants(participantsList);
-    };
 
     // Join the call
     const joinCall = useCallback(async (token?: string) => {

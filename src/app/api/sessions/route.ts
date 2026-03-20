@@ -3,7 +3,6 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/lib/auth';
 import connectToDatabase from '@/app/lib/mongodb';
 import StudySession from '@/app/models/StudySession';
-import mongoose from 'mongoose';
 
 /**
  * GET: Fetch user's study sessions
@@ -33,7 +32,7 @@ export async function GET(request: NextRequest) {
         const sessions = await StudySession.find(query).sort({ date: -1 });
 
         return NextResponse.json(sessions);
-    } catch (error) {
+    } catch (error: unknown) {
         console.error('API Error (GET sessions):', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
@@ -68,7 +67,7 @@ export async function POST(request: NextRequest) {
         });
 
         return NextResponse.json(newSession, { status: 201 });
-    } catch (error) {
+    } catch (error: unknown) {
         console.error('API Error (POST sessions):', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }

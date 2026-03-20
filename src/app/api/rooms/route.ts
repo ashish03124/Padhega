@@ -3,7 +3,6 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/lib/auth';
 import connectToDatabase from '@/app/lib/mongodb';
 import StudyRoom from '@/app/models/StudyRoom';
-import User from '@/app/models/User';
 
 /**
  * GET: Fetch active study rooms
@@ -17,7 +16,7 @@ export async function GET(request: NextRequest) {
 
         await connectToDatabase();
 
-        let query: any = { isActive: true };
+        const query: any = { isActive: true };
 
         if (mineOnly) {
             if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -35,7 +34,7 @@ export async function GET(request: NextRequest) {
             .populate('participants', 'name email image')
             .sort({ createdAt: -1 });
         return NextResponse.json(rooms);
-    } catch (error) {
+    } catch (error: unknown) {
         console.error('API Error (GET rooms):', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
@@ -82,7 +81,7 @@ export async function POST(request: NextRequest) {
         );
 
         return NextResponse.json(room, { status: 201 });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('API Error (POST rooms):', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
@@ -125,7 +124,7 @@ export async function PATCH(request: NextRequest) {
         if (!room) return NextResponse.json({ error: 'Room not found' }, { status: 404 });
 
         return NextResponse.json(room);
-    } catch (error) {
+    } catch (error: unknown) {
         console.error('API Error (PATCH rooms):', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }

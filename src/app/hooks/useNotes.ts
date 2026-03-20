@@ -268,9 +268,9 @@ export const useNotes = (): UseNotesReturn => {
 
             const data = await response.json();
             return data.text;
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Gemini API Error:', error);
-            throw new Error(`Failed to generate AI response: ${error.message}`);
+            throw new Error(`Failed to generate AI response: ${(error as Error).message}`);
         }
     };
 

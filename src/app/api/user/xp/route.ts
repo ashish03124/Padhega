@@ -34,8 +34,8 @@ export async function GET() {
             xp: user.xp || 0,
             level: user.level || 1
         });
-    } catch (error) {
-        console.error('API Error (GET XP):', error);
+    } catch (error: unknown) {
+        console.error('XP Update Error:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

@@ -29,7 +29,7 @@ export async function DELETE(
         await Thread.findByIdAndDelete(id);
 
         return NextResponse.json({ message: 'Thread deleted successfully' });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }
 }

@@ -19,7 +19,7 @@ export async function GET() {
             .sort({ isCompleted: 1, createdAt: -1 });
 
         return NextResponse.json(tasks);
-    } catch (error) {
+    } catch (error: unknown) {
         console.error('API Error (GET tasks):', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
         });
 
         return NextResponse.json(newTask, { status: 201 });
-    } catch (error) {
+    } catch (error: unknown) {
         console.error('API Error (POST tasks):', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
@@ -91,7 +91,7 @@ export async function PATCH(request: NextRequest) {
         if (!updatedTask) return NextResponse.json({ error: 'Task not found' }, { status: 404 });
 
         return NextResponse.json(updatedTask);
-    } catch (error) {
+    } catch (error: unknown) {
         console.error('API Error (PATCH tasks):', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
@@ -117,7 +117,7 @@ export async function DELETE(request: NextRequest) {
         if (!deletedTask) return NextResponse.json({ error: 'Task not found' }, { status: 404 });
 
         return NextResponse.json({ success: true });
-    } catch (error) {
+    } catch (error: unknown) {
         console.error('API Error (DELETE tasks):', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }

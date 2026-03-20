@@ -15,7 +15,7 @@ export async function POST(
         }
 
         const { id } = await params;
-        const userId = (session.user as any).id;
+        const userId = (session.user as { id: string }).id;
 
         await connectDB();
 
@@ -36,7 +36,7 @@ export async function POST(
         await thread.save();
 
         return NextResponse.json({ upvotes: thread.upvotes });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }
 }

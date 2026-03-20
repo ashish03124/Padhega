@@ -120,10 +120,10 @@ CONTENT STRUCTURE:
 
         return NextResponse.json({ text });
 
-    } catch (error: any) {
-        console.error('Gemini API Error:', error);
+    } catch (error: unknown) {
+        console.error('Session API Error:', error);
         return NextResponse.json(
-            { error: error.message },
+            { error: (error as Error).message },
             { status: 500 }
         );
     }

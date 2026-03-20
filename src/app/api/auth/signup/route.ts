@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
             },
         }, { status: 201 });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Signup error:', error);
         return NextResponse.json(
             { error: 'Internal server error. Please try again later.' },

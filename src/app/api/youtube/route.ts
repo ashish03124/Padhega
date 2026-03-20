@@ -27,10 +27,10 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({ videos });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('YouTube Search API Error:', error);
         return NextResponse.json(
-            { error: error.message || 'Failed to search videos' },
+            { error: (error as Error).message || 'Failed to search videos' },
             { status: 500 }
         );
     }
