@@ -20,8 +20,8 @@ export async function GET(request: Request) {
     }
 
     try {
-        // Increased to 20-second timeout for slower connections
-        const r: any = await withTimeout(yts(query), 20000);
+        // Lowered to 8-second timeout to stay within Vercel Hobby plan limits (10s)
+        const r: any = await withTimeout(yts(query), 8000);
         
         // Ensure we have results and videos array
         if (!r || !Array.isArray(r.videos)) {
