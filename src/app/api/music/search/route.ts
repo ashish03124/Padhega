@@ -22,14 +22,20 @@ export async function GET(request: Request) {
     try {
         // Increased to 20-second timeout for slower connections
         const r: any = await withTimeout(yts(query), 20000);
-        const videos = r.videos.slice(0, 10).map((video: any) => ({
-            title: video.title,
-            url: video.url,
-            videoId: video.videoId,
-            duration: video.timestamp,
-            thumbnail: video.thumbnail,
-            author: video.author.name,
-        }));
+        
+        // Ensure we have results and videos array
+        if (!r || !Array.isArray(r.videos)) {
+            return NextResponse.json({ videos: [] });
+        }
+
+        const videos = r.videos.slice(0, 15).map((video: any) => ({
+            title: video.title || 'Unknown Title',
+            url: video.url || '',
+            videoId: video.videoId || '',
+            duration: video.timestamp || '0:00',
+            thumbnail: video.thumbnail || '',
+            author: video.author?.name || 'Unknown Author',
+        })).filter((v: any) => v.videoId && v.url);
 
         // Cache results for 5 minutes
         return NextResponse.json(
