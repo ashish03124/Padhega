@@ -1,14 +1,12 @@
 import { NextResponse } from 'next/server';
-import yts from 'yt-search';
 
-// Add timeout wrapper for the search
-function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
-    return Promise.race([
-        promise,
-        new Promise<T>((_, reject) =>
-            setTimeout(() => reject(new Error('Search timeout')), timeoutMs)
-        ),
-    ]);
+interface VideoResult {
+    title: string;
+    url: string;
+    videoId: string;
+    duration: string;
+    thumbnail: string;
+    author: string;
 }
 
 export async function GET(request: Request) {
@@ -16,47 +14,112 @@ export async function GET(request: Request) {
     const query = searchParams.get('q');
 
     if (!query) {
-        return NextResponse.json({ error: 'Query parameter "q" is required' }, { status: 400 });
+        return NextResponse.json(
+            { error: 'Query parameter "q" is required' },
+            { status: 400 }
+        );
     }
 
     try {
-        // Lowered to 8-second timeout to stay within Vercel Hobby plan limits (10s)
-        const r: any = await withTimeout(yts(query), 8000);
-        
-        // Ensure we have results and videos array
-        if (!r || !Array.isArray(r.videos)) {
+        // Use YouTube's internal search endpoint (no API key needed)
+        const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}&sp=EgIQAQ%253D%253D`;
+
+        const response = await fetch(searchUrl, {
+            headers: {
+                'User-Agent':
+                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept-Language': 'en-US,en;q=0.9',
+            },
+            signal: AbortSignal.timeout(8000), // 8s timeout for Vercel
+        });
+
+        if (!response.ok) {
             return NextResponse.json({ videos: [] });
         }
 
-        const videos = r.videos.slice(0, 15).map((video: any) => ({
-            title: video.title || 'Unknown Title',
-            url: video.url || '',
-            videoId: video.videoId || '',
-            duration: video.timestamp || '0:00',
-            thumbnail: video.thumbnail || '',
-            author: video.author?.name || 'Unknown Author',
-        })).filter((v: any) => v.videoId && v.url);
+        const html = await response.text();
 
-        // Cache results for 5 minutes
+        // Extract the ytInitialData JSON from the page
+        const dataMatch = html.match(
+            /var ytInitialData\s*=\s*({.+?});\s*<\/script>/
+        );
+
+        if (!dataMatch || !dataMatch[1]) {
+            return NextResponse.json({ videos: [] });
+        }
+
+        let ytData: any;
+        try {
+            ytData = JSON.parse(dataMatch[1]);
+        } catch {
+            return NextResponse.json({ videos: [] });
+        }
+
+        // Navigate the YouTube data structure to find video results
+        const contents =
+            ytData?.contents?.twoColumnSearchResultsRenderer?.primaryContents
+                ?.sectionListRenderer?.contents?.[0]?.itemSectionRenderer
+                ?.contents;
+
+        if (!Array.isArray(contents)) {
+            return NextResponse.json({ videos: [] });
+        }
+
+        const videos: VideoResult[] = [];
+
+        for (const item of contents) {
+            const renderer = item?.videoRenderer;
+            if (!renderer || !renderer.videoId) continue;
+
+            const title =
+                renderer.title?.runs?.[0]?.text || 'Unknown Title';
+            const videoId = renderer.videoId;
+            const author =
+                renderer.ownerText?.runs?.[0]?.text || 'Unknown';
+            const duration =
+                renderer.lengthText?.simpleText || '0:00';
+            const thumbnail =
+                renderer.thumbnail?.thumbnails?.pop()?.url || '';
+
+            videos.push({
+                title,
+                url: `https://www.youtube.com/watch?v=${videoId}`,
+                videoId,
+                duration,
+                thumbnail,
+                author,
+            });
+
+            if (videos.length >= 15) break;
+        }
+
         return NextResponse.json(
             { videos },
             {
                 headers: {
-                    'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+                    'Cache-Control':
+                        'public, s-maxage=300, stale-while-revalidate=600',
                 },
             }
         );
     } catch (error: unknown) {
         console.error('YouTube Search Error:', error);
 
-        // Specific timeout error message
-        if (error instanceof Error && error.message === 'Search timeout') {
+        if (
+            error instanceof DOMException &&
+            error.name === 'TimeoutError'
+        ) {
             return NextResponse.json(
-                { error: 'Search is taking too long. Please try again or use a different search term.' },
+                {
+                    error: 'Search is taking too long. Please try again.',
+                },
                 { status: 504 }
             );
         }
 
-        return NextResponse.json({ error: 'Failed to search music' }, { status: 500 });
+        return NextResponse.json(
+            { error: 'Failed to search music' },
+            { status: 500 }
+        );
     }
 }
