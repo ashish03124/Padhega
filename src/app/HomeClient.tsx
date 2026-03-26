@@ -24,7 +24,6 @@ const HomeClient: React.FC = () => {
     return (
         <>
             <div id="particles-js"></div>
-            <div id="cursor"></div>
 
             <main className="bento-grid">
                 {/* Row 1: Timer + Music (50/50) */}

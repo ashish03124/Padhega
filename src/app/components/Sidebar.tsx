@@ -26,9 +26,14 @@ const Sidebar: React.FC = () => {
             )}
             <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
                 <div className="sidebar-logo">
-                    <img src="/images/logo.png" alt="Padhega Logo" className="logo-img dark-logo" />
-                    <img src="/images/logo1.jpg" alt="Padhega Logo" className="logo-img light-logo" />
-                    <h1>Padhega</h1>
+                    <div className="logo-group">
+                        <img src="/images/logo.png" alt="Padhega Logo" className="logo-img dark-logo" />
+                        <img src="/images/logo1.jpg" alt="Padhega Logo" className="logo-img light-logo" />
+                        <h1>Padhega</h1>
+                    </div>
+                    <button className="close-sidebar-btn" onClick={toggleMenu} aria-label="Close Menu">
+                        <i className="fas fa-times"></i>
+                    </button>
                 </div>
                 <nav className="sidebar-nav">
                     {navItems.map((item) => (
@@ -36,6 +41,7 @@ const Sidebar: React.FC = () => {
                             key={item.path}
                             href={item.path}
                             className={`nav-link ${pathname === item.path ? 'active' : ''}`}
+                            onClick={() => isOpen && toggleMenu()}
                         >
                             <i className={`fas ${item.icon}`}></i>
                             <span>{item.name}</span>

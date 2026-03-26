@@ -24,19 +24,6 @@ body {
   line-height: 1.6;
 }
 
-/* Custom Cursor */
-#cursor {
-  width: 20px;
-  height: 20px;
-  border: 2px solid var(--accent-primary);
-  border-radius: 50%;
-  position: fixed;
-  pointer-events: none;
-  z-index: 9999;
-  transition: all 0.1s ease;
-  transform: translate(-50%, -50%);
-}
-
 /* Layout Structure */
 .app-container {
   display: flex;
@@ -68,11 +55,41 @@ body {
 }
 
 .sidebar-logo {
-  padding: 2rem;
-  border-bottom: 1px solid var(--glass-border);
+  padding: 1.5rem 1rem;
+  border-bottom: 2px solid var(--glass-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.logo-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.close-sidebar-btn {
+  display: none;
+  background: rgba(48, 82, 41, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: var(--text-primary);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.1);
+}
+
+.close-sidebar-btn:hover {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: white;
+  transform: rotate(90deg) scale(1.1);
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.4);
 }
 
 .mobile-sidebar-overlay {
@@ -96,10 +113,9 @@ body {
 }
 
 .logo-img {
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   object-fit: contain;
-  margin-right: 10px;
 }
 
 .dark-logo {
@@ -130,6 +146,12 @@ body {
   height: 40px;
   object-fit: contain;
   margin-left: 10px;
+}
+
+@media (max-width: 768px) {
+  .mobile-logo-img {
+    display: none;
+  }
 }
 
 .auth-logo {
@@ -957,12 +979,18 @@ input:checked+.slider:before {
   .mobile-sidebar-overlay {
     display: block;
     animation: fadeIn 0.3s ease;
+    z-index: 1090;
   }
 
   .sidebar {
     transform: translateX(-100%);
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 5px 0 25px rgba(0, 0, 0, 0.5);
+    z-index: 1100;
+  }
+
+  .close-sidebar-btn {
+    display: flex;
   }
 
   .sidebar.open {
@@ -975,6 +1003,7 @@ input:checked+.slider:before {
 
   .app-header-actions {
     padding: 0 1rem;
+    justify-content: space-between;
   }
 
   .bento-grid {
@@ -1680,6 +1709,18 @@ nav.gen {
   gap: 0.5rem;
   font-family: inherit;
   font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .theme-toggle span,
+  .auth-btn span {
+    display: none;
+  }
+  
+  .theme-toggle,
+  .auth-btn {
+    padding: 0.6rem;
+  }
 }
 
 .theme-toggle:hover,
