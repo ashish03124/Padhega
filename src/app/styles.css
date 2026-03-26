@@ -20,7 +20,6 @@ html {
 body {
   /* Background is handled in globals.css */
   min-height: 100vh;
-  overflow-x: hidden;
   line-height: 1.6;
 }
 
@@ -30,7 +29,6 @@ body {
   min-height: 100vh;
   width: 100%;
   max-width: 100vw;
-  overflow-x: hidden;
 }
 
 .sidebar {
@@ -299,13 +297,18 @@ body {
   justify-content: space-between;
   /* Space out hamburger and user actions */
   align-items: center;
-  background: var(--glass-bg);
+  background: rgba(5, 5, 5, 0.85); /* Darker, more solid for scroll */
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--glass-border);
-  position: relative;
+  border-bottom: 2px solid var(--glass-border);
+  position: sticky;
+  top: 0;
   z-index: 1010;
   /* Higher than sidebar (1000) so dropdowns don't get clipped */
+}
+
+[data-theme='light'] .app-header-actions {
+  background: rgba(248, 250, 252, 0.85);
 }
 
 /* Base states for mobile elements */
