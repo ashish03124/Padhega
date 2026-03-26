@@ -607,12 +607,11 @@
     }
 
     .progress-ring {
-        width: 90px;
-        height: 90px;
-        transform: scale(0.85);
-        transform-origin: top center;
-        margin-bottom: -1rem;
-        /* Adjust space since we scaled it */
+        width: 120px;
+        height: 120px;
+        transform: scale(0.75);
+        transform-origin: center center;
+        margin: -15px auto; /* Centering the scaled 120px ring in a smaller space */
     }
 
     .progress-percentage {

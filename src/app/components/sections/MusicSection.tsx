@@ -138,6 +138,25 @@ const MusicSection: React.FC<MusicSectionProps> = ({
                     </button>
                 </div>
             )}
+            {musicSource === 'youtube' && !videoId && !isSearchingMusic && musicSearchResults.length === 0 && (
+                <div className="music-suggestions-container">
+                    <p>Or try some focus sounds:</p>
+                    <div className="suggestion-tags">
+                        {['Lofi Study', 'Ambient Focus', 'Deep Work', 'Nature Sounds', 'Rainy Night', 'Classical Focus'].map((tag) => (
+                            <button
+                                key={tag}
+                                className="suggestion-tag"
+                                onClick={() => {
+                                    setSearchQuery(tag);
+                                    setTimeout(() => handleMusicSearch(), 100);
+                                }}
+                            >
+                                {tag}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* Hidden YouTube Player */}
             {videoId && (
@@ -156,8 +175,11 @@ const MusicSection: React.FC<MusicSectionProps> = ({
                 {thumbnail ? (
                     <img src={thumbnail} alt="Album Art" className="album-art-image" />
                 ) : (
-                    <div className="album-art-placeholder">
-                        <i className="fas fa-music"></i>
+                    <div className="album-art-placeholder empty-state">
+                        <div className="placeholder-icon">
+                            <i className="fas fa-headphones-alt"></i>
+                        </div>
+                        <p>Your focus soundtrack awaits</p>
                     </div>
                 )}
 
@@ -175,8 +197,14 @@ const MusicSection: React.FC<MusicSectionProps> = ({
             <div className="spotify-controls-container">
                 {/* Now Playing Info */}
                 <div className="track-info">
-                    <div className="track-title" title={nowPlaying}>{nowPlaying}</div>
-                    <div className="track-artist">{musicSource === 'youtube' && videoId ? 'YouTube Music' : 'Local Audio'}</div>
+                    <div className="track-title" title={nowPlaying}>
+                        {videoId ? nowPlaying : "Ready to focus?"}
+                    </div>
+                    <div className="track-artist">
+                        {videoId 
+                            ? (musicSource === 'youtube' ? 'YouTube Music' : 'Local Audio')
+                            : "Search for focus music to get started"}
+                    </div>
                 </div>
 
                 {/* Main Player Controls */}

@@ -2,6 +2,7 @@
 import React from 'react';
 import { useStudyRooms } from '../../hooks/useStudyRooms';
 import { useRouter } from 'next/navigation';
+import './study-rooms.css';
 
 const StudyGroupsSection: React.FC = () => {
     const { rooms, isLoading, joinRoom } = useStudyRooms();
@@ -37,41 +38,45 @@ const StudyGroupsSection: React.FC = () => {
                         <p>No active rooms. Create one!</p>
                     </div>
                 ) : (
-                    rooms.slice(0, 5).map(room => {
+                    rooms.slice(0, 8).map(room => {
                         const subjectInitial = (room.subject && room.subject.length > 0)
                             ? room.subject[0].toUpperCase()
                             : 'G';
 
                         return (
-                            <div key={room.id} className="group-item">
-                                <div className="group-avatar" style={{
-                                    background: `linear-gradient(135deg, var(--primary), var(--secondary))`,
-                                    width: '40px',
-                                    height: '40px',
-                                    borderRadius: '12px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    color: 'white',
-                                    fontWeight: 'bold',
-                                    fontSize: '1.2rem',
-                                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-                                }}>
-                                    {subjectInitial}
-                                </div>
-                                <div className="group-info">
-                                    <div className="group-name">{room.name}</div>
-                                    <div className="group-members">
-                                        {room.currentParticipantCount}/{room.maxParticipants} members • {room.subject}
+                            <div key={room.id} className="study-room-card">
+                                <div className="card-header-flex">
+                                    <div className="room-avatar-container">
+                                        <div className="room-avatar" style={{
+                                            background: `linear-gradient(135deg, var(--primary), var(--secondary))`,
+                                        }}>
+                                            {subjectInitial}
+                                        </div>
+                                        <div className="live-badge">Live</div>
+                                    </div>
+                                    <div className="member-count">
+                                        <i className="fas fa-user-friends"></i>
+                                        {room.currentParticipantCount}/{room.maxParticipants}
                                     </div>
                                 </div>
-                                <button
-                                    className="join-btn"
-                                    onClick={() => handleJoin(room.id)}
-                                    disabled={room.currentParticipantCount >= room.maxParticipants}
-                                >
-                                    Join
-                                </button>
+
+                                <div className="card-body">
+                                    <div className="room-details">
+                                        <div className="room-subject">{room.subject}</div>
+                                        <div className="room-name" title={room.name}>{room.name}</div>
+                                    </div>
+                                </div>
+
+                                <div className="card-footer">
+                                    <button
+                                        className="room-join-btn"
+                                        onClick={() => handleJoin(room.id)}
+                                        disabled={room.currentParticipantCount >= room.maxParticipants}
+                                    >
+                                        <span>Join Room</span>
+                                        <i className="fas fa-arrow-right"></i>
+                                    </button>
+                                </div>
                             </div>
                         );
                     })

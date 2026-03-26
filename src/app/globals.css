@@ -19,8 +19,8 @@
   --text-secondary-rgb: 163, 163, 163;
   --text-muted: #737373;
 
-  --card-bg: rgba(10, 10, 10, 0.75);
-  --card-bg-hover: rgba(255, 255, 255, 0.1);
+  --card-bg: rgba(10, 10, 10, 0.55);
+  --card-bg-hover: rgba(0, 0, 0, 0.45);
   --input-bg: rgba(0, 0, 0, 0.3);
 
   /* Adaptive Backgrounds */
@@ -56,7 +56,7 @@
   --text-muted: #6b7280;
 
   --card-bg: #ffffff;
-  --card-bg-hover: rgba(255, 255, 255, 0.9);
+  --card-bg-hover: rgba(0, 0, 0, 0.05);
   --input-bg: rgba(255, 255, 255, 0.7);
 
   /* Adaptive Backgrounds (Light Mode) */
