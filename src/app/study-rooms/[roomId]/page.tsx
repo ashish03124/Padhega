@@ -20,26 +20,14 @@ export default function RoomPage() {
 
     const [room, setRoom] = useState(rooms.find(r => r.id === roomId));
     const [roomUrl, setRoomUrl] = useState<string>('');
-    const [isJoining, setIsJoining] = useState(false);
-    const [isChatOpen, setIsChatOpen] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const {
-        callObject,
-        participants,
-        isCameraOn,
-        isMicOn,
-        isScreenSharing,
-        chatMessages,
-        callState,
+        token,
         error: callError,
-        joinCall,
-        leaveCall,
-        toggleCamera,
-        toggleMic,
-        toggleScreenShare,
-        sendChatMessage,
-    } = useVideoCall(roomUrl);
+        isLoading: isJoining,
+        getToken,
+    } = useVideoCall();
 
     useEffect(() => {
         const fetchRoomData = async () => {
@@ -51,56 +39,10 @@ export default function RoomPage() {
             }
 
             setRoom(currentRoom);
-
-            // If room has Daily.co URL, use it
-            if (currentRoom.dailyRoomUrl) {
-                setRoomUrl(currentRoom.dailyRoomUrl);
-            } else {
-                // Create a Daily.co room
-                createDailyRoom(currentRoom.name, currentRoom.privacy);
-            }
         };
 
         fetchRoomData();
     }, [roomId, getRoomById]);
-
-    const createDailyRoom = async (roomName: string, privacy: string) => {
-        try {
-            const response = await fetch('/api/daily/create-room', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    roomName: `${roomId}`,
-                    privacy: privacy,
-                }),
-            });
-
-            if (!response.ok) {
-                const data = await response.json();
-
-                // Log detailed error information
-                console.error('=== Client-side API Error ===');
-                console.error('Response status:', response.status);
-                console.error('Error data:', data);
-                console.error('Error message:', data.error);
-                console.error('Error details:', data.details);
-                console.error('============================');
-
-                throw new Error(data.error || 'Failed to create video room');
-            }
-
-            const data = await response.json();
-            setRoomUrl(data.url);
-
-            // Update room with Daily URL (in real app, save to database)
-            if (room) {
-                room.dailyRoomUrl = data.url;
-            }
-        } catch (err: any) {
-            console.error('Error creating Daily room:', err);
-            setError(err.message || 'Failed to initialize video room');
-        }
-    };
 
     const handleJoinRoom = async () => {
         if (!user) {
@@ -113,52 +55,21 @@ export default function RoomPage() {
             return;
         }
 
-        setIsJoining(true);
-
         try {
             // Join the study room (local state)
             const joined = joinRoom(roomId);
-            if (!joined) {
-                setIsJoining(false);
-                return;
-            }
+            if (!joined) return;
 
-            // Get Daily.co meeting token
-            const response = await fetch('/api/daily/create-token', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    roomName: roomId,
-                    userName: user.name || 'Guest',
-                    isOwner: room.createdBy.email === user.email,
-                }),
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to get meeting token');
-            }
-
-            const { token } = await response.json();
-
-            // Join the Daily.co call
-            await joinCall(token);
+            // Get LiveKit access token
+            await getToken(roomId, user.name || 'Guest');
         } catch (err: any) {
             console.error('Error joining room:', err);
             setError(err.message || 'Failed to join video call');
-        } finally {
-            setIsJoining(false);
         }
     };
 
     const handleLeaveRoom = async () => {
-        await leaveCall();
         router.push('/study-rooms');
-    };
-
-    const handleSendMessage = (message: string) => {
-        if (user) {
-            sendChatMessage(message, user.name || 'Guest');
-        }
     };
 
     if (error && !room) {
@@ -196,11 +107,11 @@ export default function RoomPage() {
                 </div>
                 <div className="participant-count">
                     <i className="fas fa-users"></i>
-                    <span>{Object.keys(participants).length} participant{Object.keys(participants).length !== 1 ? 's' : ''}</span>
+                    <span>Room Active</span>
                 </div>
             </div>
 
-            {callState === 'idle' && (
+            {!token && (
                 <div className="join-call-screen">
                     <div className="room-details">
                         <h1>{room.name}</h1>
@@ -240,7 +151,7 @@ export default function RoomPage() {
                         <button
                             className="btn btn-primary btn-lg join-call-btn"
                             onClick={handleJoinRoom}
-                            disabled={isJoining || !roomUrl}
+                            disabled={isJoining}
                         >
                             {isJoining ? (
                                 <>
@@ -256,40 +167,14 @@ export default function RoomPage() {
                 </div>
             )}
 
-            {(callState === 'joining' || callState === 'joined') && (
+            {token && (
                 <div className="video-call-layout">
                     <div className="video-main">
-                        <VideoCall callObject={callObject} participants={participants} />
-                        <CallControls
-                            isCameraOn={isCameraOn}
-                            isMicOn={isMicOn}
-                            isScreenSharing={isScreenSharing}
-                            onToggleCamera={toggleCamera}
-                            onToggleMic={toggleMic}
-                            onToggleScreenShare={toggleScreenShare}
-                            onLeaveCall={handleLeaveRoom}
-                        />
+                        <VideoCall token={token} onLeave={handleLeaveRoom} />
                     </div>
-
-                    <ChatPanel
-                        messages={chatMessages}
-                        userName={user?.name || 'Guest'}
-                        onSendMessage={handleSendMessage}
-                        isOpen={isChatOpen}
-                        onToggle={() => setIsChatOpen(!isChatOpen)}
-                    />
-                </div>
-            )}
-
-            {callState === 'left' && (
-                <div className="call-ended-screen">
-                    <i className="fas fa-phone-slash"></i>
-                    <h2>You left the study room</h2>
-                    <button className="btn btn-primary" onClick={() => router.push('/study-rooms')}>
-                        <i className="fas fa-arrow-left"></i> Back to Rooms
-                    </button>
                 </div>
             )}
         </main>
     );
 }
+
