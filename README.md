@@ -18,7 +18,7 @@
 
 ## ✨ Features
 
-### 🎯 Study Timer
+### Study Timer
 A Pomodoro-style timer with three modes — **Pomodoro**, **Short Break**, and **Long Break** — to help you stay focused using the proven time-boxing technique.
 
 ### 🎵 Focus Music Player
