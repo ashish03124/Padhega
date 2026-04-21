@@ -27,7 +27,7 @@ Search YouTube for focus music or pick from curated presets: Lofi Study, Ambient
 ### 🤖 AI-Powered Resources
 Search any topic and get an **instant AI study guide** (powered by Google Gemini) alongside curated YouTube video tutorials. Covers anything from Quantum Physics to Python for Beginners.
 
-### 📝 Smart Notes
+###  Smart Notes
 A rich-text notes editor with heading levels (H1, H2, H3), live word/character count, and **auto-save**. Supports AI-assisted note generation.
 
 ### ✅ Gamified Study Tasks
