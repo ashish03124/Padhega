@@ -64,18 +64,23 @@ const TimerSection: React.FC<TimerSectionProps> = ({
                     className={`mode-btn ${timerMode === 'pomodoro' ? 'active' : ''}`}
                     onClick={() => handleTimerModeChange('pomodoro', timerSettings.pomodoro)}
                 >
+                    <i className="fas fa-bullseye"></i>
                     Pomodoro
                 </button>
+                <span className="tab-divider"></span>
                 <button
                     className={`mode-btn ${timerMode === 'short-break' ? 'active' : ''}`}
                     onClick={() => handleTimerModeChange('short-break', timerSettings.shortBreak)}
                 >
+                    <i className="fas fa-mug-hot"></i>
                     Short Break
                 </button>
+                <span className="tab-divider"></span>
                 <button
                     className={`mode-btn ${timerMode === 'long-break' ? 'active' : ''}`}
                     onClick={() => handleTimerModeChange('long-break', timerSettings.longBreak)}
                 >
+                    <i className="fas fa-spa"></i>
                     Long Break
                 </button>
             </div>

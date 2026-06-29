@@ -7,6 +7,35 @@
     /* Inherits background, border, shadow from section */
     position: relative;
     overflow: hidden;
+    background-image: url('/images/musicbg.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* Dark overlay so UI content stays readable over the background */
+.music-box::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.70);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Prevent global section:hover from overriding the background image */
+.music-box:hover {
+    background-image: url('/images/musicbg.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: transparent;
+}
+
+/* Ensure all direct children render above the background overlay */
+.music-box>* {
+    position: relative;
+    z-index: 1;
 }
 
 /* Section Header */
@@ -1490,8 +1519,68 @@
         transform: scale(1);
         box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
     }
+
     100% {
         transform: scale(1.05);
         box-shadow: 0 0 20px 5px rgba(16, 185, 129, 0.2);
     }
-}
+}
+
+/* ===================================
+   QUEUE / NEXT / PREV / SHUFFLE
+   =================================== */
+
+/* Shuffle button active glow */
+.transport-btn.shuffle-btn.active {
+    color: #10b981;
+    text-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+}
+
+.transport-btn.shuffle-btn.active:hover:not(:disabled) {
+    color: #34d399;
+}
+
+/* Currently playing track in results list */
+.result-item-active {
+    background: rgba(16, 185, 129, 0.12) !important;
+    border-left: 3px solid #10b981;
+}
+
+.result-item-active .result-title {
+    color: #10b981 !important;
+}
+
+/* Queue position indicator (e.g. "2/8") */
+.queue-indicator {
+    font-size: 0.7rem;
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    border-radius: 10px;
+    padding: 2px 7px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+    cursor: default;
+    user-select: none;
+}
+
+/* Light mode overrides */
+[data-theme='light'] .transport-btn.shuffle-btn.active {
+    color: var(--accent-primary);
+}
+
+[data-theme='light'] .result-item-active {
+    background: rgba(48, 82, 41, 0.1) !important;
+    border-left-color: var(--accent-primary);
+}
+
+[data-theme='light'] .result-item-active .result-title {
+    color: var(--accent-primary) !important;
+}
+
+[data-theme='light'] .queue-indicator {
+    color: var(--accent-primary);
+    background: rgba(48, 82, 41, 0.1);
+    border-color: rgba(48, 82, 41, 0.25);
+}

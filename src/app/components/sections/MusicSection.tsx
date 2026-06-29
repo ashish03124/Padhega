@@ -17,6 +17,9 @@ interface MusicSectionProps {
     currentTime: number;
     duration: number;
     thumbnail: string;
+    queue: any[];
+    currentQueueIndex: number;
+    isShuffled: boolean;
     setYoutubeUrl: (url: string) => void;
     setSearchQuery: (query: string) => void;
     setShowMusicSettingsModal: (show: boolean) => void;
@@ -27,7 +30,10 @@ interface MusicSectionProps {
     handlePlayPauseMusic: () => void;
     handleVolumeChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     handleMusicSearch: () => Promise<void>;
-    selectMusicTrack: (video: any) => void;
+    selectMusicTrack: (video: any, queueList?: any[]) => void;
+    handleNextTrack: () => void;
+    handlePrevTrack: () => void;
+    handleShuffle: () => void;
     handleSeek: (e: React.ChangeEvent<HTMLInputElement>) => void;
     formatTime: (seconds: number) => string;
     youtubeOpts: any;
@@ -47,6 +53,9 @@ const MusicSection: React.FC<MusicSectionProps> = ({
     currentTime,
     duration,
     thumbnail,
+    queue,
+    currentQueueIndex,
+    isShuffled,
     setYoutubeUrl,
     setSearchQuery,
     setShowMusicSettingsModal,
@@ -58,6 +67,9 @@ const MusicSection: React.FC<MusicSectionProps> = ({
     handleVolumeChange,
     handleMusicSearch,
     selectMusicTrack,
+    handleNextTrack,
+    handlePrevTrack,
+    handleShuffle,
     handleSeek,
     formatTime,
     youtubeOpts,
@@ -111,12 +123,16 @@ const MusicSection: React.FC<MusicSectionProps> = ({
                     {musicSearchResults.length > 0 && (
                         <div className="music-results glass-card">
                             <div className="results-header">
-                                <span>Search Results</span>
+                                <span>Search Results ({musicSearchResults.length} tracks)</span>
                                 <button onClick={() => handleMusicSourceChange('youtube')} className="close-results">&times;</button>
                             </div>
                             <div className="results-list">
                                 {musicSearchResults.map((video, index) => (
-                                    <div key={index} className="result-item" onClick={() => selectMusicTrack(video)}>
+                                    <div
+                                        key={index}
+                                        className={`result-item ${queue.length > 0 && queue[currentQueueIndex]?.videoId === video.videoId ? 'result-item-active' : ''}`}
+                                        onClick={() => selectMusicTrack(video, musicSearchResults)}
+                                    >
                                         <img src={video.thumbnail} alt={video.title} />
                                         <div className="result-info">
                                             <div className="result-title">{video.title}</div>
@@ -209,15 +225,38 @@ const MusicSection: React.FC<MusicSectionProps> = ({
 
                 {/* Main Player Controls */}
                 <div className="player-transport">
-                    <button className="transport-btn" disabled={!videoId}>
+                    <button
+                        className={`transport-btn shuffle-btn ${isShuffled ? 'active' : ''}`}
+                        onClick={handleShuffle}
+                        disabled={queue.length < 2}
+                        title={isShuffled ? 'Shuffle On' : 'Shuffle Off'}
+                    >
+                        <i className="fas fa-random"></i>
+                    </button>
+                    <button
+                        className="transport-btn"
+                        onClick={handlePrevTrack}
+                        disabled={queue.length === 0}
+                        title="Previous track (or restart if > 3s played)"
+                    >
                         <i className="fas fa-step-backward"></i>
                     </button>
                     <button className="play-pause-btn" onClick={handlePlayPauseMusic} disabled={!videoId}>
                         <i className={`fas fa-${isPlaying ? 'pause' : 'play'}`}></i>
                     </button>
-                    <button className="transport-btn" disabled={!videoId}>
+                    <button
+                        className="transport-btn"
+                        onClick={handleNextTrack}
+                        disabled={queue.length === 0}
+                        title="Next track"
+                    >
                         <i className="fas fa-step-forward"></i>
                     </button>
+                    {queue.length > 0 && (
+                        <span className="queue-indicator" title={`Queue: ${currentQueueIndex + 1} / ${queue.length}`}>
+                            {currentQueueIndex + 1}/{queue.length}
+                        </span>
+                    )}
                 </div>
 
                 {/* Progress Bar */}
@@ -229,7 +268,7 @@ const MusicSection: React.FC<MusicSectionProps> = ({
                             className="progress-bar-spotify"
                             min="0"
                             max={duration || 100}
-                            value={currentTime}
+                            value={currentTime ?? 0}
                             onChange={handleSeek}
                             disabled={!videoId}
                             style={{

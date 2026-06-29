@@ -1,3 +1,12 @@
+/* Custom Fonts */
+@font-face {
+  font-family: 'Roughmaker';
+  src: url('/fonts/roughmarker/Roughmarker.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* Modern Glassmorphism Theme */
 
 :root {
@@ -1065,8 +1074,13 @@ input:checked+.slider:before {
   }
 
   .mode-btn {
-    padding: 0.5rem 0.25rem;
-    font-size: 0.75rem;
+    padding: 0.45rem 0.5rem;
+    font-size: 0.72rem;
+    gap: 0.3rem;
+  }
+
+  .mode-btn i {
+    font-size: 0.85rem;
   }
 
   .timer {
@@ -1200,6 +1214,25 @@ section:hover {
   background: var(--glass-bg);
 }
 
+.timer-box::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('/images/pomobg.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.5;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Ensure all timer content sits above the bg image */
+.timer-box > * {
+  position: relative;
+  z-index: 1;
+}
+
 .timer-settings {
   cursor: pointer;
   padding: 0.6rem 1rem;
@@ -1236,54 +1269,90 @@ section:hover {
   color: white;
 }
 
+/* Tab Bar Container */
 .timer-mode {
   display: flex;
-  background: var(--bg-overlay-light);
+  align-items: center;
+  background: rgba(3, 10, 5, 0.92);
   border-radius: 100px;
-  padding: 0.25rem;
+  padding: 0.3rem 0.4rem;
   margin-bottom: 2rem;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-  position: relative;
-  overflow: hidden;
+  border: 1px solid rgba(16, 185, 129, 0.1);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
+  gap: 0;
+  overflow: visible;
+}
+
+/* Vertical divider between tabs */
+.tab-divider {
+  width: 1px;
+  height: 18px;
+  background: rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+/* Hide divider immediately after the active tab */
+.mode-btn.active + .tab-divider {
+  opacity: 0;
 }
 
 .mode-btn {
   flex: 1;
-  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.6rem 1rem;
   background: transparent;
-  border: none;
+  border: 1px solid transparent;
   border-radius: 100px;
-  color: var(--text-secondary);
-  font-weight: 600;
-  font-size: 0.9rem;
+  color: rgba(180, 195, 188, 0.45);
+  font-weight: 500;
+  font-size: 0.875rem;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  z-index: 1;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
 }
 
-/* Dynamic Gradients for Active Tabs */
-.active-pomodoro .mode-btn.active {
-  color: white;
-  background: linear-gradient(135deg, #10b981, #305229);
-  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+.mode-btn i {
+  font-size: 1rem;
+  transition: color 0.25s ease;
+  line-height: 1;
 }
 
-.active-short-break .mode-btn.active {
-  color: white;
-  background: linear-gradient(135deg, #14b8a6, #305229);
-  box-shadow: 0 4px 15px rgba(20, 184, 166, 0.4);
+/* Active tab: pill with dark green border + subtle glow */
+.mode-btn.active {
+  color: #fff;
+  background: rgba(5, 18, 9, 0.85);
+  border-color: rgba(16, 185, 129, 0.5);
+  box-shadow:
+    0 0 14px rgba(16, 185, 129, 0.18),
+    inset 0 0 6px rgba(16, 185, 129, 0.06);
 }
 
-.active-long-break .mode-btn.active {
-  color: white;
-  background: linear-gradient(135deg, #22c55e, #305229);
-  box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
+.mode-btn.active i {
+  color: #10b981;
 }
 
 .mode-btn:not(.active):hover {
-  color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.05);
+  color: rgba(210, 225, 218, 0.75);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* Light mode overrides */
+[data-theme='light'] .timer-mode {
+  background: rgba(5, 25, 10, 0.88);
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+[data-theme='light'] .mode-btn {
+  color: rgba(160, 185, 170, 0.6);
+}
+
+[data-theme='light'] .mode-btn.active {
+  color: #fff;
+  background: rgba(5, 18, 9, 0.9);
+  border-color: rgba(16, 185, 129, 0.55);
 }
 
 .timer-container-wrapper {
@@ -1355,14 +1424,14 @@ section:hover {
 }
 
 .timer {
+  font-family: 'Roughmaker', 'Geist Mono', monospace;
   font-size: 5rem;
-  font-weight: 800;
+  font-weight: normal;
   color: white;
   text-align: center;
   line-height: 1;
-  font-variant-numeric: tabular-nums;
   transition: text-shadow 0.5s ease;
-  letter-spacing: -2px;
+  letter-spacing: 2px;
 }
 
 
@@ -1407,8 +1476,8 @@ section:hover {
 }
 
 .btn-pause {
-  background: linear-gradient(135deg, #f59e0b, #ef4444);
-  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+  background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary));
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
 }
 
 .btn-fab-secondary {
