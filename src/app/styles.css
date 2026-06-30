@@ -262,7 +262,7 @@ body {
   transition: opacity 0.1s ease;
   /* Fade the top of the image smoothly into the background */
   -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 25%);
-  mask-image: linear-gradient(to bottom, transparent 0%, black 70%);
+  mask-image: linear-gradient(to bottom, transparent 0%, black 50%);
 }
 
 /* Light Mode: Show Light Image, Hide Dark Image */
@@ -288,6 +288,7 @@ body {
   display: block;
   opacity: 0.85;
   mix-blend-mode: screen;
+  transform: translateY(-25px);
   /* Helps the dark image blend without a hard box */
 }
 
@@ -306,7 +307,8 @@ body {
   justify-content: space-between;
   /* Space out hamburger and user actions */
   align-items: center;
-  background: rgba(5, 5, 5, 0.85); /* Darker, more solid for scroll */
+  background: rgba(5, 5, 5, 0.85);
+  /* Darker, more solid for scroll */
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 2px solid var(--glass-border);
@@ -955,6 +957,16 @@ input:checked+.slider:before {
   /* Prevents flex/grid blowout */
 }
 
+.bento-item-translucent {
+  background: rgba(10, 10, 10, 0.10);
+  backdrop-filter: blur(14px);
+}
+
+[data-theme='light'] .bento-item-translucent {
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(14px);
+}
+
 .bento-item>section {
   flex: 1;
   width: 100%;
@@ -1228,7 +1240,7 @@ section:hover {
 }
 
 /* Ensure all timer content sits above the bg image */
-.timer-box > * {
+.timer-box>* {
   position: relative;
   z-index: 1;
 }
@@ -1292,7 +1304,7 @@ section:hover {
 }
 
 /* Hide divider immediately after the active tab */
-.mode-btn.active + .tab-divider {
+.mode-btn.active+.tab-divider {
   opacity: 0;
 }
 
@@ -1784,11 +1796,12 @@ nav.gen {
 }
 
 @media (max-width: 768px) {
+
   .theme-toggle span,
   .auth-btn span {
     display: none;
   }
-  
+
   .theme-toggle,
   .auth-btn {
     padding: 0.6rem;
@@ -2189,6 +2202,10 @@ footer {
    =================================== */
 
 /* Timer UI Overrides */
+[data-theme='light'] .timer-box::before {
+  background-image: url('/images/pomodaybg.png');
+}
+
 [data-theme='light'] .timer-glow-bg {
   background: var(--card-bg);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);

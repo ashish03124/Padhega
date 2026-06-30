@@ -35,20 +35,20 @@ const HomeClient: React.FC = () => {
                 </div>
 
                 {/* Row 2: Notes (Full Width) */}
-                <div className="bento-item bento-row-full">
+                <div className="bento-item bento-row-full bento-item-translucent">
                     <NotesSection {...notes} />
                 </div>
 
                 {/* Row 3: Tasks + Study Groups (50/50) */}
-                <div className="bento-item">
+                <div className="bento-item bento-item-translucent">
                     <TasksSection {...tasks} />
                 </div>
-                <div className="bento-item">
+                <div className="bento-item bento-item-translucent">
                     <StudyGroupsSection />
                 </div>
 
                 {/* Row 4: Motivation (Full Width) */}
-                <div className="bento-item bento-row-full">
+                <div className="bento-item bento-row-full bento-item-translucent">
                     <MotivationSection />
                 </div>
             </main>

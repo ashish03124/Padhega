@@ -1318,6 +1318,18 @@
    LIGHT MODE OVERRIDES FOR MUSIC UI
    =================================== */
 
+[data-theme='light'] .music-box {
+    background-image: url('/images/musicdaybg.png');
+}
+
+[data-theme='light'] .music-box:hover {
+    background-image: url('/images/musicdaybg.png');
+}
+
+[data-theme='light'] .music-box::before {
+    background: rgba(255, 255, 255, 0.35);
+}
+
 [data-theme='light'] .music-settings {
     background: rgba(48, 82, 41, 0.05);
     border-color: rgba(48, 82, 41, 0.1);
