@@ -1320,10 +1320,12 @@
 
 [data-theme='light'] .music-box {
     background-image: url('/images/musicdaybg.png');
+    background-color: rgba(255, 255, 255, 0.10) !important;
 }
 
 [data-theme='light'] .music-box:hover {
     background-image: url('/images/musicdaybg.png');
+    background-color: rgba(255, 255, 255, 0.10) !important;
 }
 
 [data-theme='light'] .music-box::before {

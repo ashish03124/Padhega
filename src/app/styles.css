@@ -2202,8 +2202,21 @@ footer {
    =================================== */
 
 /* Timer UI Overrides */
+[data-theme='light'] .bento-item:has(.timer-box),
+[data-theme='light'] .bento-item:has(.music-box) {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+[data-theme='light'] .timer-box {
+  background: rgba(255, 255, 255, 0.10) !important;
+}
+
 [data-theme='light'] .timer-box::before {
   background-image: url('/images/pomodaybg.png');
+  opacity: 0.85;
 }
 
 [data-theme='light'] .timer-glow-bg {
