@@ -967,6 +967,10 @@ input:checked+.slider:before {
   backdrop-filter: blur(14px);
 }
 
+.bento-item-translucent section {
+  background: transparent !important;
+}
+
 .bento-item>section {
   flex: 1;
   width: 100%;
@@ -1234,7 +1238,7 @@ section:hover {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  opacity: 0.5;
+  opacity: 0.30;
   z-index: 0;
   pointer-events: none;
 }
@@ -2202,21 +2206,9 @@ footer {
    =================================== */
 
 /* Timer UI Overrides */
-[data-theme='light'] .bento-item:has(.timer-box),
-[data-theme='light'] .bento-item:has(.music-box) {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-}
-
-[data-theme='light'] .timer-box {
-  background: rgba(255, 255, 255, 0.10) !important;
-}
-
 [data-theme='light'] .timer-box::before {
   background-image: url('/images/pomodaybg.png');
-  opacity: 0.85;
+  opacity: 0.15;
 }
 
 [data-theme='light'] .timer-glow-bg {

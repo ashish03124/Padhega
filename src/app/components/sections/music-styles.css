@@ -2,34 +2,24 @@
    FOCUS MUSIC SECTION - MODERN STYLING
    =================================== */
 
-/* Music Section Container - Uses section glassmorphism */
 .music-box {
     /* Inherits background, border, shadow from section */
     position: relative;
     overflow: hidden;
-    background-image: url('/images/musicbg.png');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
 }
 
-/* Dark overlay so UI content stays readable over the background */
+/* Background image with opacity control */
 .music-box::before {
     content: '';
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.70);
-    pointer-events: none;
-    z-index: 0;
-}
-
-/* Prevent global section:hover from overriding the background image */
-.music-box:hover {
     background-image: url('/images/musicbg.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    background-color: transparent;
+    opacity: 0.30;
+    pointer-events: none;
+    z-index: 0;
 }
 
 /* Ensure all direct children render above the background overlay */
@@ -1318,18 +1308,9 @@
    LIGHT MODE OVERRIDES FOR MUSIC UI
    =================================== */
 
-[data-theme='light'] .music-box {
-    background-image: url('/images/musicdaybg.png');
-    background-color: rgba(255, 255, 255, 0.10) !important;
-}
-
-[data-theme='light'] .music-box:hover {
-    background-image: url('/images/musicdaybg.png');
-    background-color: rgba(255, 255, 255, 0.10) !important;
-}
-
 [data-theme='light'] .music-box::before {
-    background: rgba(255, 255, 255, 0.05);
+    background-image: url('/images/musicdaybg.png');
+    opacity: 0.15;
 }
 
 [data-theme='light'] .music-settings {
