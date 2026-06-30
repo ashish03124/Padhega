@@ -1327,7 +1327,7 @@
 }
 
 [data-theme='light'] .music-box::before {
-    background: rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.05);
 }
 
 [data-theme='light'] .music-settings {
