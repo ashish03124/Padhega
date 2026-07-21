@@ -1,5 +1,4 @@
 import React from 'react';
-import YouTube from 'react-youtube';
 import './music-styles.css';
 import './minimal-visualizer.css';
 
@@ -171,18 +170,6 @@ const MusicSection: React.FC<MusicSectionProps> = ({
                             </button>
                         ))}
                     </div>
-                </div>
-            )}
-
-            {/* Hidden YouTube Player */}
-            {videoId && (
-                <div style={{ display: 'none' }}>
-                    <YouTube
-                        videoId={videoId}
-                        opts={youtubeOpts}
-                        onReady={onYouTubeReady}
-                        onStateChange={onYouTubeStateChange}
-                    />
                 </div>
             )}
 
