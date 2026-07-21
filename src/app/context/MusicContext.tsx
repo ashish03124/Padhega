@@ -347,6 +347,66 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         };
     }, []);
 
+    // Media Session API for lock screen / background playback controls
+    useEffect(() => {
+        if (typeof window !== 'undefined' && 'mediaSession' in navigator) {
+            try {
+                // Update metadata shown on the lock screen / notification drawer
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: videoId ? nowPlaying : 'Ready to Focus',
+                    artist: musicSource === 'youtube' ? 'YouTube Focus Music' : 'Local Audio',
+                    album: 'Padhega Study Companion',
+                    artwork: [
+                        {
+                            src: thumbnail || 'https://padhega.vercel.app/images/logo.png',
+                            sizes: '512x512',
+                            type: 'image/png'
+                        }
+                    ]
+                });
+
+                // Sync the play/pause state with the OS widget
+                navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+            } catch (error) {
+                console.error('Error updating Media Session metadata:', error);
+            }
+        }
+    }, [nowPlaying, thumbnail, isPlaying, musicSource, videoId]);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined' && 'mediaSession' in navigator) {
+            try {
+                navigator.mediaSession.setActionHandler('play', () => {
+                    if (youtubePlayerRef.current) {
+                        youtubePlayerRef.current.playVideo();
+                        setIsPlaying(true);
+                    }
+                });
+                navigator.mediaSession.setActionHandler('pause', () => {
+                    if (youtubePlayerRef.current) {
+                        youtubePlayerRef.current.pauseVideo();
+                        setIsPlaying(false);
+                    }
+                });
+                navigator.mediaSession.setActionHandler('previoustrack', () => {
+                    handlePrevTrack();
+                });
+                navigator.mediaSession.setActionHandler('nexttrack', () => {
+                    handleNextTrack();
+                });
+                // seekto enables skipping forward/backward from OS scrubber if supported
+                navigator.mediaSession.setActionHandler('seekto', (details) => {
+                    if (youtubePlayerRef.current && details.seekTime !== undefined) {
+                        youtubePlayerRef.current.seekTo(details.seekTime, true);
+                        setCurrentTime(details.seekTime);
+                    }
+                });
+            } catch (error) {
+                console.error('Error setting Media Session action handlers:', error);
+            }
+        }
+    }, [videoId, queue, currentQueueIndex, isShuffled]);
+
     // YouTube player options — autoplay:1 lets onYouTubeReady trigger playVideo()
     const youtubeOpts = {
         height: '0',
