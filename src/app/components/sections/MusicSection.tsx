@@ -1,4 +1,5 @@
 import React from 'react';
+import YouTube from 'react-youtube';
 import './music-styles.css';
 import './minimal-visualizer.css';
 
@@ -56,6 +57,7 @@ interface MusicSectionProps {
     isSearchingMusic: boolean;
     searchQuery: string;
     showMusicSettingsModal: boolean;
+    showVideo: boolean;
     currentTime: number;
     duration: number;
     thumbnail: string;
@@ -65,6 +67,7 @@ interface MusicSectionProps {
     setYoutubeUrl: (url: string) => void;
     setSearchQuery: (query: string) => void;
     setShowMusicSettingsModal: (show: boolean) => void;
+    setShowVideo: (show: boolean) => void;
     handleMusicSourceChange: (source: 'youtube' | 'local') => void;
     handleLoadMusic: () => void;
     onYouTubeReady: (event: any) => void;
@@ -93,6 +96,7 @@ const MusicSection: React.FC<MusicSectionProps> = ({
     isSearchingMusic,
     searchQuery,
     showMusicSettingsModal,
+    showVideo,
     currentTime,
     duration,
     thumbnail,
@@ -102,6 +106,7 @@ const MusicSection: React.FC<MusicSectionProps> = ({
     setYoutubeUrl,
     setSearchQuery,
     setShowMusicSettingsModal,
+    setShowVideo,
     handleMusicSourceChange,
     handleLoadMusic,
     onYouTubeReady,
@@ -264,6 +269,7 @@ const MusicSection: React.FC<MusicSectionProps> = ({
                     </div>
                 </div>
             )}
+
             {musicSource === 'youtube' && !videoId && !isSearchingMusic && musicSearchResults.length === 0 && (
                 <div className="music-suggestions-container">
                     <p>Or try some focus sounds:</p>
@@ -284,38 +290,66 @@ const MusicSection: React.FC<MusicSectionProps> = ({
                 </div>
             )}
 
-            {/* Album Art & Visualizer */}
-            <div className="album-art-container">
-                {thumbnail ? (
-                    <img src={thumbnail} alt="Album Art" className="album-art-image" />
-                ) : (
-                    <div className="album-art-placeholder empty-state">
-                        <div className="placeholder-icon">
-                            <i className="fas fa-headphones-alt"></i>
-                        </div>
-                        <p>Your focus soundtrack awaits</p>
-                    </div>
-                )}
-
-                {/* Waveform / Equalizer Overlay */}
-                <div className={`waveform-overlay ${isPlaying ? 'playing' : 'idle'}`}>
-                    {[...Array(5)].map((_, i) => (
-                        <div
-                            key={i}
-                            className={`eq-bar eq-bar-${i + 1}`}
-                        ></div>
-                    ))}
+            {/* YouTube IFrame Player - hidden by default, shown when showVideo is true */}
+            {musicSource === 'youtube' && videoId && (
+                <div className={`youtube-player-wrapper ${showVideo ? 'yt-visible' : 'yt-hidden'}`}>
+                    <YouTube
+                        key={videoId}
+                        videoId={videoId}
+                        opts={youtubeOpts}
+                        onReady={onYouTubeReady}
+                        onStateChange={onYouTubeStateChange}
+                        className="youtube-iframe"
+                    />
                 </div>
-            </div>
+            )}
+
+            {/* Album Art & Visualizer - shown only when video is hidden */}
+            {(!showVideo || musicSource === 'local') && (
+                <div className="album-art-container">
+                    {thumbnail ? (
+                        <img src={thumbnail} alt="Album Art" className="album-art-image" />
+                    ) : (
+                        <div className="album-art-placeholder empty-state">
+                            <div className="placeholder-icon">
+                                <i className="fas fa-headphones-alt"></i>
+                            </div>
+                            <p>Your focus soundtrack awaits</p>
+                        </div>
+                    )}
+
+                    {/* Waveform / Equalizer Overlay */}
+                    <div className={`waveform-overlay ${isPlaying ? 'playing' : 'idle'}`}>
+                        {[...Array(5)].map((_, i) => (
+                            <div
+                                key={i}
+                                className={`eq-bar eq-bar-${i + 1}`}
+                            ></div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             <div className="spotify-controls-container">
-                {/* Now Playing Info */}
+                {/* Now Playing Info + Watch Video button */}
                 <div className="track-info">
-                    <div className="track-title" title={nowPlaying}>
-                        {videoId ? nowPlaying : "Ready to focus?"}
+                    <div className="track-title-row">
+                        <div className="track-title" title={nowPlaying}>
+                            {videoId ? nowPlaying : "Ready to focus?"}
+                        </div>
+                        {musicSource === 'youtube' && videoId && (
+                            <button
+                                className={`watch-video-btn ${showVideo ? 'active' : ''}`}
+                                onClick={() => setShowVideo(!showVideo)}
+                                title={showVideo ? 'Hide video' : 'Watch video'}
+                            >
+                                <i className={`fas fa-${showVideo ? 'eye-slash' : 'film'}`}></i>
+                                <span>{showVideo ? 'Hide' : 'Watch'}</span>
+                            </button>
+                        )}
                     </div>
                     <div className="track-artist">
-                        {videoId 
+                        {videoId
                             ? (musicSource === 'youtube' ? 'YouTube Music' : 'Local Audio')
                             : "Search for focus music to get started"}
                     </div>
