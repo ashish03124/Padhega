@@ -1579,3 +1579,291 @@
     background: rgba(48, 82, 41, 0.1);
     border-color: rgba(48, 82, 41, 0.25);
 }
+
+/* ===================================
+   LOCAL & AMBIENT MUSIC STYLING
+   =================================== */
+
+.local-music-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    position: relative;
+    z-index: 1;
+}
+
+/* File Upload Zone */
+.file-upload-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    border: 2px dashed rgba(16, 185, 129, 0.3);
+    border-radius: var(--radius-md);
+    background: rgba(16, 185, 129, 0.03);
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.file-upload-zone:hover {
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.06);
+    transform: translateY(-2px);
+}
+
+.upload-icon {
+    font-size: 2.25rem;
+    color: #10b981;
+    margin-bottom: 0.75rem;
+    filter: drop-shadow(0 2px 8px rgba(16, 185, 129, 0.2));
+    animation: bounce 2s infinite;
+}
+
+.upload-text h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: var(--text-primary);
+}
+
+.upload-text p {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+}
+
+.upload-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 0.6rem 1.2rem;
+    border-radius: var(--radius-sm);
+    transition: all 0.2s ease;
+}
+
+/* Ambient Section */
+.ambient-sounds-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.ambient-sounds-section h4 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.ambient-sounds-section .subtitle {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+
+/* Grid Layout */
+.ambient-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+}
+
+/* Ambient Cards */
+.ambient-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.ambient-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), transparent);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.ambient-card:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(16, 185, 129, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.ambient-card:hover::before {
+    opacity: 1;
+}
+
+.ambient-card.active {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.4);
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.15);
+}
+
+.ambient-card.active::before {
+    opacity: 1;
+}
+
+.ambient-icon-wrapper {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    transition: all 0.25s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.ambient-card.active .ambient-icon-wrapper {
+    background: #10b981;
+    color: #ffffff;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+}
+
+.ambient-title {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: color 0.25s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.ambient-card.active .ambient-title {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* Playing Audio visualizer bar animation inside card */
+.ambient-playing-indicator {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 12px;
+    margin-left: auto;
+    position: relative;
+    z-index: 1;
+}
+
+.ambient-playing-indicator span {
+    width: 2px;
+    height: 100%;
+    background-color: #10b981;
+    animation: ambientBar 1s ease-in-out infinite alternate;
+    transform-origin: bottom;
+}
+
+.ambient-playing-indicator span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.ambient-playing-indicator span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes ambientBar {
+    0% { transform: scaleY(0.2); }
+    100% { transform: scaleY(1); }
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
+
+/* Mobile Warning Banner for YouTube background limitation */
+.mobile-youtube-warning {
+    margin-bottom: 1.25rem;
+    border: 1px solid rgba(245, 158, 11, 0.25) !important;
+    background: rgba(245, 158, 11, 0.05) !important;
+    border-radius: var(--radius-md);
+    transition: all 0.3s ease;
+}
+
+.mobile-youtube-warning:hover {
+    border-color: rgba(245, 158, 11, 0.4) !important;
+    background: rgba(245, 158, 11, 0.08) !important;
+}
+
+.warning-content {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.78rem;
+    line-height: 1.4;
+    color: var(--text-secondary);
+}
+
+.warning-icon {
+    font-size: 1.1rem;
+    color: #f59e0b;
+    margin-top: 1px;
+    flex-shrink: 0;
+}
+
+.warning-highlight {
+    color: #f59e0b;
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.warning-highlight:hover {
+    color: #d97706;
+}
+
+/* Light mode overrides for local and ambient section */
+[data-theme='light'] .file-upload-zone {
+    border-color: rgba(48, 82, 41, 0.3);
+    background: rgba(48, 82, 41, 0.03);
+}
+
+[data-theme='light'] .file-upload-zone:hover {
+    border-color: var(--accent-primary);
+    background: rgba(48, 82, 41, 0.06);
+}
+
+[data-theme='light'] .upload-icon {
+    color: var(--accent-primary);
+}
+
+[data-theme='light'] .ambient-card {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme='light'] .ambient-card:hover {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(48, 82, 41, 0.2);
+}
+
+[data-theme='light'] .ambient-card.active {
+    background: rgba(48, 82, 41, 0.08);
+    border-color: rgba(48, 82, 41, 0.35);
+}
+
+[data-theme='light'] .ambient-card.active .ambient-icon-wrapper {
+    background: var(--accent-primary);
+}
+
+[data-theme='light'] .ambient-playing-indicator span {
+    background-color: var(--accent-primary);
+}

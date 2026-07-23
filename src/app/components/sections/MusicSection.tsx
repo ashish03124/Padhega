@@ -2,6 +2,49 @@ import React from 'react';
 import './music-styles.css';
 import './minimal-visualizer.css';
 
+const AMBIENT_SOUNDS = [
+    {
+        id: 'rain',
+        title: 'Rain & Thunder',
+        icon: 'fa-cloud-showers-heavy',
+        url: 'https://assets.mixkit.co/active_storage/sfx/2433/2433-84.wav',
+        thumbnail: 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=300&auto=format&fit=crop&q=60',
+        author: 'Mixkit Ambient'
+    },
+    {
+        id: 'waves',
+        title: 'Ocean Waves',
+        icon: 'fa-water',
+        url: 'https://assets.mixkit.co/active_storage/sfx/2508/2508-84.wav',
+        thumbnail: 'https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=300&auto=format&fit=crop&q=60',
+        author: 'Mixkit Ambient'
+    },
+    {
+        id: 'birds',
+        title: 'Forest Birds',
+        icon: 'fa-tree',
+        url: 'https://assets.mixkit.co/active_storage/sfx/2438/2438-84.wav',
+        thumbnail: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=300&auto=format&fit=crop&q=60',
+        author: 'Mixkit Ambient'
+    },
+    {
+        id: 'fire',
+        title: 'Campfire Crackle',
+        icon: 'fa-fire',
+        url: 'https://assets.mixkit.co/active_storage/sfx/2432/2432-84.wav',
+        thumbnail: 'https://images.unsplash.com/photo-1478147427282-58a87a120781?w=300&auto=format&fit=crop&q=60',
+        author: 'Mixkit Ambient'
+    },
+    {
+        id: 'noise',
+        title: 'White Noise',
+        icon: 'fa-volume-mute',
+        url: 'https://assets.mixkit.co/active_storage/sfx/2568/2568-84.wav',
+        thumbnail: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=300&auto=format&fit=crop&q=60',
+        author: 'Mixkit Ambient'
+    }
+];
+
 interface MusicSectionProps {
     musicSource: 'youtube' | 'local';
     youtubeUrl: string;
@@ -36,6 +79,7 @@ interface MusicSectionProps {
     handleSeek: (e: React.ChangeEvent<HTMLInputElement>) => void;
     formatTime: (seconds: number) => string;
     youtubeOpts: any;
+    handleLocalFileSelect: (file: File) => void;
 }
 
 const MusicSection: React.FC<MusicSectionProps> = ({
@@ -72,6 +116,7 @@ const MusicSection: React.FC<MusicSectionProps> = ({
     handleSeek,
     formatTime,
     youtubeOpts,
+    handleLocalFileSelect,
 }) => {
     const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0;
 
@@ -98,12 +143,21 @@ const MusicSection: React.FC<MusicSectionProps> = ({
                     className={`source-btn ${musicSource === 'local' ? 'active' : ''}`}
                     onClick={() => handleMusicSourceChange('local')}
                 >
-                    <i className="fas fa-file-audio"></i> Local
+                    <i className="fas fa-file-audio"></i> Local & Ambient
                 </button>
             </div>
 
             {musicSource === 'youtube' && (
                 <div className="music-search-container">
+                    <div className="mobile-youtube-warning glass-card">
+                        <div className="warning-content">
+                            <i className="fas fa-info-circle warning-icon"></i>
+                            <div>
+                                <strong>Background Playback Note:</strong> Mobile browsers restrict YouTube background play. Use the <span className="warning-highlight" onClick={() => handleMusicSourceChange('local')}>Local & Ambient</span> tab below to play files or ambient loops that work in the background!
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="music-input-group">
                         <div className="music-input-container">
                             <input
@@ -146,11 +200,77 @@ const MusicSection: React.FC<MusicSectionProps> = ({
             )}
 
             {musicSource === 'local' && (
-                <div className="music-input-container">
-                    <input type="file" accept="audio/*" />
-                    <button className="btn btn-primary">
-                        <i className="fas fa-play"></i> Play
-                    </button>
+                <div className="local-music-container">
+                    <div className="file-upload-zone glass-card">
+                        <i className="fas fa-cloud-upload-alt upload-icon"></i>
+                        <div className="upload-text">
+                            <h4>Upload Focus Files</h4>
+                            <p>Select any audio file (.mp3, .wav, .m4a) to play in the background</p>
+                        </div>
+                        <input
+                            type="file"
+                            accept="audio/*"
+                            id="local-audio-file"
+                            onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                    handleLocalFileSelect(file);
+                                }
+                            }}
+                            className="local-audio-input"
+                            style={{ display: 'none' }}
+                        />
+                        <label htmlFor="local-audio-file" className="btn btn-primary upload-btn">
+                            <i className="fas fa-folder-open"></i> Browse Files
+                        </label>
+                    </div>
+
+                    <div className="ambient-sounds-section">
+                        <h4>Built-in Ambient Sounds</h4>
+                        <p className="subtitle">Plays loopable, mobile background-compatible focus sounds</p>
+                        <div className="ambient-grid">
+                            {AMBIENT_SOUNDS.map((sound) => {
+                                const isCurrent = videoId === `ambient-${sound.id}`;
+                                return (
+                                    <div
+                                        key={sound.id}
+                                        className={`ambient-card ${isCurrent ? 'active' : ''}`}
+                                        onClick={() => {
+                                            const track = {
+                                                videoId: `ambient-${sound.id}`,
+                                                title: sound.title,
+                                                url: sound.url,
+                                                thumbnail: sound.thumbnail,
+                                                isAmbient: true,
+                                                author: sound.author
+                                            };
+                                            const allTracks = AMBIENT_SOUNDS.map(s => ({
+                                                videoId: `ambient-${s.id}`,
+                                                title: s.title,
+                                                url: s.url,
+                                                thumbnail: s.thumbnail,
+                                                isAmbient: true,
+                                                author: s.author
+                                            }));
+                                            selectMusicTrack(track, allTracks);
+                                        }}
+                                    >
+                                        <div className="ambient-icon-wrapper">
+                                            <i className={`fas ${sound.icon}`}></i>
+                                        </div>
+                                        <span className="ambient-title">{sound.title}</span>
+                                        {isCurrent && isPlaying && (
+                                            <div className="ambient-playing-indicator">
+                                                <span></span>
+                                                <span></span>
+                                                <span></span>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
                 </div>
             )}
             {musicSource === 'youtube' && !videoId && !isSearchingMusic && musicSearchResults.length === 0 && (
