@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import ytdl from 'ytdl-core';
+import ytdl from '@distube/ytdl-core';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
