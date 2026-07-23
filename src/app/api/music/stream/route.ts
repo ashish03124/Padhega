@@ -1,69 +1,88 @@
 import { NextRequest, NextResponse } from 'next/server';
-import ytdl from '@distube/ytdl-core';
+import YTDlpWrap from 'yt-dlp-wrap';
+import fs from 'fs';
+import path from 'path';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
+
+// Helper to get and ensure the yt-dlp binary is downloaded and ready
+async function ensureBinary(): Promise<string> {
+    const binDir = path.join(process.cwd(), 'bin');
+    if (!fs.existsSync(binDir)) {
+        fs.mkdirSync(binDir, { recursive: true });
+    }
+
+    const binaryName = process.platform === 'win32' ? 'yt-dlp.exe' : 'yt-dlp';
+    const binaryPath = path.join(binDir, binaryName);
+
+    if (!fs.existsSync(binaryPath)) {
+        console.log(`[Stream API] Binary not found. Downloading yt-dlp to ${binaryPath}...`);
+        await YTDlpWrap.downloadFromGithub(binaryPath);
+        console.log('[Stream API] yt-dlp download complete.');
+        
+        // Ensure executable permissions on Linux/macOS
+        if (process.platform !== 'win32') {
+            fs.chmodSync(binaryPath, '755');
+        }
+    }
+
+    return binaryPath;
+}
 
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const videoId = searchParams.get('id');
 
-    if (!videoId || !ytdl.validateID(videoId)) {
+    if (!videoId || videoId.length < 5) {
         return NextResponse.json({ error: 'Valid Video ID is required' }, { status: 400 });
     }
 
     try {
-        // Get video info to extract audio format details
-        const info = await ytdl.getInfo(videoId, {
-            requestOptions: {
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                }
-            }
-        });
+        const binaryPath = await ensureBinary();
+        const ytDlpWrap = new YTDlpWrap(binaryPath);
+        const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
 
-        // Pick the best audio-only format (prefer m4a/aac, 128kbps)
-        const format = ytdl.chooseFormat(info.formats, {
-            quality: 'highestaudio',
-            filter: 'audioonly',
-        });
-
-        if (!format) {
-            return NextResponse.json({ error: 'No audio format available' }, { status: 500 });
-        }
-
-        // Create a streaming response by piping ytdl stream to web ReadableStream
-        const ytdlStream = ytdl.downloadFromInfo(info, { format });
+        console.log(`[Stream API] Starting yt-dlp stream for video: ${videoId}`);
+        
+        // Stream best audio, prioritizing m4a format for iOS Safari compatibility
+        const ytDlpStream = ytDlpWrap.execStream([
+            videoUrl,
+            '-f', 'ba[ext=m4a]/ba',
+            '-o', '-'
+        ]);
 
         const webStream = new ReadableStream({
             start(controller) {
-                ytdlStream.on('data', (chunk: Buffer) => {
+                ytDlpStream.on('data', (chunk: Buffer) => {
                     controller.enqueue(chunk);
                 });
-                ytdlStream.on('end', () => {
+                ytDlpStream.on('end', () => {
                     controller.close();
                 });
-                ytdlStream.on('error', (err: Error) => {
-                    console.error('ytdl stream error:', err);
+                ytDlpStream.on('error', (err: Error) => {
+                    console.error('[Stream API] yt-dlp stream process error:', err);
                     controller.error(err);
                 });
             },
             cancel() {
-                ytdlStream.destroy();
+                console.log('[Stream API] client cancelled/closed stream. Killing yt-dlp process.');
+                ytDlpStream.destroy();
             }
         });
 
+        // Set Content-Type. Native player will sniff container from payload anyway.
         return new NextResponse(webStream, {
             status: 200,
             headers: {
-                'Content-Type': format.mimeType || 'audio/mp4',
+                'Content-Type': 'audio/mp4',
                 'Cache-Control': 'no-cache',
                 'Transfer-Encoding': 'chunked',
             },
         });
 
     } catch (error: any) {
-        console.error('Stream route error for videoId:', videoId, error?.message);
+        console.error('[Stream API] Failed to stream videoId:', videoId, error?.message);
         return NextResponse.json(
             { error: error?.message || 'Failed to stream audio' },
             { status: 500 }

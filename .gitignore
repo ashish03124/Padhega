@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# yt-dlp binary and scraper logs
+/bin/
+*-player-script.js
