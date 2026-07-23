@@ -6,7 +6,9 @@ import path from 'path';
 export const runtime = 'nodejs';
 export const maxDuration = 30;
 
-// Helper to get and ensure the yt-dlp binary is downloaded and ready
+// Cache direct GoogleVideo URLs in memory to serve range requests instantly (< 10ms)
+const urlCache = new Map<string, { url: string; expiresAt: number }>();
+
 async function ensureBinary(): Promise<string> {
     const binDir = path.join(process.cwd(), 'bin');
     if (!fs.existsSync(binDir)) {
@@ -21,13 +23,64 @@ async function ensureBinary(): Promise<string> {
         await YTDlpWrap.downloadFromGithub(binaryPath);
         console.log('[Stream API] yt-dlp download complete.');
         
-        // Ensure executable permissions on Linux/macOS
         if (process.platform !== 'win32') {
             fs.chmodSync(binaryPath, '755');
         }
     }
 
     return binaryPath;
+}
+
+async function getDirectAudioUrl(videoId: string): Promise<string> {
+    const cached = urlCache.get(videoId);
+    if (cached && cached.expiresAt > Date.now()) {
+        return cached.url;
+    }
+
+    const binaryPath = await ensureBinary();
+    const ytDlpWrap = new YTDlpWrap(binaryPath);
+    const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+
+    // Extract direct stream URL for format 140 (audio/mp4 m4a, 128k) or best m4a audio
+    const stdout = await ytDlpWrap.execPromise([
+        videoUrl,
+        '-g',
+        '-f', '140/m4a/bestaudio[ext=m4a]/ba'
+    ]);
+
+    const directUrl = stdout.trim().split('\n')[0];
+    if (!directUrl || !directUrl.startsWith('http')) {
+        throw new Error('Could not resolve direct audio URL');
+    }
+
+    // Cache direct URL for 3 hours (YouTube links expire after ~6 hours)
+    urlCache.set(videoId, {
+        url: directUrl,
+        expiresAt: Date.now() + 3 * 60 * 60 * 1000
+    });
+
+    return directUrl;
+}
+
+function buildResponse(upstreamRes: Response): NextResponse {
+    const responseHeaders = new Headers();
+
+    const contentType = upstreamRes.headers.get('content-type') || 'audio/mp4';
+    const contentLength = upstreamRes.headers.get('content-length');
+    const contentRange = upstreamRes.headers.get('content-range');
+    const acceptRanges = upstreamRes.headers.get('accept-ranges') || 'bytes';
+
+    responseHeaders.set('Content-Type', contentType);
+    responseHeaders.set('Accept-Ranges', acceptRanges);
+    responseHeaders.set('Cache-Control', 'public, max-age=3600');
+
+    if (contentLength) responseHeaders.set('Content-Length', contentLength);
+    if (contentRange) responseHeaders.set('Content-Range', contentRange);
+
+    return new NextResponse(upstreamRes.body, {
+        status: upstreamRes.status,
+        headers: responseHeaders,
+    });
 }
 
 export async function GET(request: NextRequest) {
@@ -39,50 +92,30 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-        const binaryPath = await ensureBinary();
-        const ytDlpWrap = new YTDlpWrap(binaryPath);
-        const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+        const directUrl = await getDirectAudioUrl(videoId);
+        const clientRange = request.headers.get('range');
 
-        console.log(`[Stream API] Starting yt-dlp stream for video: ${videoId}`);
-        
-        // Stream best audio, prioritizing m4a format for iOS Safari compatibility
-        const ytDlpStream = ytDlpWrap.execStream([
-            videoUrl,
-            '-f', 'ba[ext=m4a]/ba',
-            '-o', '-'
-        ]);
+        const headers: Record<string, string> = {
+            'User-Agent': request.headers.get('user-agent') || 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Safari/604.1',
+        };
 
-        const webStream = new ReadableStream({
-            start(controller) {
-                ytDlpStream.on('data', (chunk: Buffer) => {
-                    controller.enqueue(chunk);
-                });
-                ytDlpStream.on('end', () => {
-                    controller.close();
-                });
-                ytDlpStream.on('error', (err: Error) => {
-                    console.error('[Stream API] yt-dlp stream process error:', err);
-                    controller.error(err);
-                });
-            },
-            cancel() {
-                console.log('[Stream API] client cancelled/closed stream. Killing yt-dlp process.');
-                ytDlpStream.destroy();
-            }
-        });
+        if (clientRange) {
+            headers['Range'] = clientRange;
+        }
 
-        // Set Content-Type. Native player will sniff container from payload anyway.
-        return new NextResponse(webStream, {
-            status: 200,
-            headers: {
-                'Content-Type': 'audio/mp4',
-                'Cache-Control': 'no-cache',
-                'Transfer-Encoding': 'chunked',
-            },
-        });
+        let upstreamRes = await fetch(directUrl, { headers });
+
+        if (!upstreamRes.ok && upstreamRes.status !== 206) {
+            // If cached URL expired early, purge cache and retry once
+            urlCache.delete(videoId);
+            const freshUrl = await getDirectAudioUrl(videoId);
+            upstreamRes = await fetch(freshUrl, { headers });
+        }
+
+        return buildResponse(upstreamRes);
 
     } catch (error: any) {
-        console.error('[Stream API] Failed to stream videoId:', videoId, error?.message);
+        console.error('[Stream API] Error streaming videoId:', videoId, error?.message);
         return NextResponse.json(
             { error: error?.message || 'Failed to stream audio' },
             { status: 500 }

@@ -261,18 +261,20 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (localAudioRef.current) {
             localAudioRef.current.pause();
             localAudioRef.current.src = resolvedUrl;
-            localAudioRef.current.load();
             localAudioRef.current.loop = !!video.isAmbient;
             localAudioRef.current.volume = volume / 100;
             
-            localAudioRef.current.play()
-                .then(() => {
-                    setIsPlaying(true);
-                })
-                .catch((err) => {
-                    console.error("Failed to play native audio:", err);
-                    setIsPlaying(false);
-                });
+            const playPromise = localAudioRef.current.play();
+            if (playPromise !== undefined) {
+                playPromise
+                    .then(() => {
+                        setIsPlaying(true);
+                    })
+                    .catch((err) => {
+                        console.error("Failed to play native audio:", err);
+                        setIsPlaying(false);
+                    });
+            }
         }
 
         setVideoId(video.videoId);
@@ -477,6 +479,8 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             {/* Unified Native HTML5 Audio element for all playback (YouTube & Local) */}
             <audio
                 ref={localAudioRef}
+                playsInline
+                preload="auto"
                 style={{ display: 'none' }}
                 onTimeUpdate={handleAudioTimeUpdate}
                 onDurationChange={handleAudioDurationChange}
