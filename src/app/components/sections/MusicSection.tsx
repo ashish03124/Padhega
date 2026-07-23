@@ -149,15 +149,6 @@ const MusicSection: React.FC<MusicSectionProps> = ({
 
             {musicSource === 'youtube' && (
                 <div className="music-search-container">
-                    <div className="mobile-youtube-warning glass-card">
-                        <div className="warning-content">
-                            <i className="fas fa-info-circle warning-icon"></i>
-                            <div>
-                                <strong>Background Playback Note:</strong> Mobile browsers restrict YouTube background play. Use the <span className="warning-highlight" onClick={() => handleMusicSourceChange('local')}>Local & Ambient</span> tab below to play files or ambient loops that work in the background!
-                            </div>
-                        </div>
-                    </div>
-
                     <div className="music-input-group">
                         <div className="music-input-container">
                             <input
