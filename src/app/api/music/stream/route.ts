@@ -1,97 +1,72 @@
 import { NextRequest, NextResponse } from 'next/server';
+import ytdl from 'ytdl-core';
+
+export const runtime = 'nodejs';
+export const maxDuration = 30;
 
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const videoId = searchParams.get('id');
 
-    if (!videoId) {
-        return NextResponse.json({ error: 'Video ID is required' }, { status: 400 });
+    if (!videoId || !ytdl.validateID(videoId)) {
+        return NextResponse.json({ error: 'Valid Video ID is required' }, { status: 400 });
     }
 
     try {
-        const watchUrl = `https://www.youtube.com/watch?v=${videoId}&bpctr=9999999999&has_verified=1`;
-        const response = await fetch(watchUrl, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Accept-Language': 'en-US,en;q=0.9',
+        // Get video info to extract audio format details
+        const info = await ytdl.getInfo(videoId, {
+            requestOptions: {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                }
+            }
+        });
+
+        // Pick the best audio-only format (prefer m4a/aac, 128kbps)
+        const format = ytdl.chooseFormat(info.formats, {
+            quality: 'highestaudio',
+            filter: 'audioonly',
+        });
+
+        if (!format) {
+            return NextResponse.json({ error: 'No audio format available' }, { status: 500 });
+        }
+
+        // Create a streaming response by piping ytdl stream to web ReadableStream
+        const ytdlStream = ytdl.downloadFromInfo(info, { format });
+
+        const webStream = new ReadableStream({
+            start(controller) {
+                ytdlStream.on('data', (chunk: Buffer) => {
+                    controller.enqueue(chunk);
+                });
+                ytdlStream.on('end', () => {
+                    controller.close();
+                });
+                ytdlStream.on('error', (err: Error) => {
+                    console.error('ytdl stream error:', err);
+                    controller.error(err);
+                });
             },
-            signal: AbortSignal.timeout(8000),
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to fetch YouTube watch page');
-        }
-
-        const html = await response.text();
-        const match = html.match(/ytInitialPlayerResponse\s*=\s*({.+?});/) ||
-                      html.match(/window\[['"]ytInitialPlayerResponse['"]\]\s*=\s*({.+?});/) ||
-                      html.match(/window\.ytInitialPlayerResponse\s*=\s*({.+?});/);
-                      
-        if (!match) {
-            throw new Error('Could not extract YouTube player data');
-        }
-
-        const playerData = JSON.parse(match[1]);
-        
-        // If the playabilityStatus is not OK, return the status reason
-        const playabilityStatus = playerData?.playabilityStatus;
-        if (playabilityStatus && playabilityStatus.status !== 'OK') {
-            throw new Error(`Video is not playable: ${playabilityStatus.reason || playabilityStatus.status}`);
-        }
-
-        const adaptiveFormats = playerData?.streamingData?.adaptiveFormats || [];
-        const audioFormats = adaptiveFormats.filter((format: any) => 
-            format.mimeType && format.mimeType.startsWith('audio/')
-        );
-
-        if (audioFormats.length === 0) {
-            throw new Error('No audio tracks found for this video');
-        }
-
-        // Find itag 140 (AAC audio, 128kbps) or fallback to first audio format
-        let selectedFormat = audioFormats.find((f: any) => f.itag === 140) || audioFormats[0];
-        let streamUrl = selectedFormat.url;
-
-        if (!streamUrl && selectedFormat.signatureCipher) {
-            const params = new URLSearchParams(selectedFormat.signatureCipher);
-            const cipherUrl = params.get('url');
-            const sig = params.get('s') || params.get('sig');
-            const sp = params.get('sp') || 'sig';
-            if (cipherUrl && sig) {
-                streamUrl = `${cipherUrl}&${sp}=${encodeURIComponent(sig)}`;
-            } else {
-                streamUrl = cipherUrl;
-            }
-        }
-
-        if (!streamUrl) {
-            throw new Error('Direct audio stream URL is restricted or unavailable');
-        }
-
-        // Proxy the stream
-        const streamResponse = await fetch(streamUrl, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+            cancel() {
+                ytdlStream.destroy();
             }
         });
 
-        if (!streamResponse.ok) {
-            throw new Error('Failed to stream audio from YouTube servers');
-        }
-
-        const contentType = streamResponse.headers.get('Content-Type') || 'audio/mp4';
-        
-        return new NextResponse(streamResponse.body, {
+        return new NextResponse(webStream, {
             status: 200,
             headers: {
-                'Content-Type': contentType,
+                'Content-Type': format.mimeType || 'audio/mp4',
+                'Cache-Control': 'no-cache',
                 'Transfer-Encoding': 'chunked',
-                'Cache-Control': 'public, max-age=3600',
-            }
+            },
         });
 
     } catch (error: any) {
-        console.error('Streaming error for video ID:', videoId, error);
-        return NextResponse.json({ error: error.message || 'Streaming failed' }, { status: 500 });
+        console.error('Stream route error for videoId:', videoId, error?.message);
+        return NextResponse.json(
+            { error: error?.message || 'Failed to stream audio' },
+            { status: 500 }
+        );
     }
 }
