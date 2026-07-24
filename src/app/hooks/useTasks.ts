@@ -4,7 +4,13 @@ import { useState, useEffect } from 'react';
 import { useTaskLogger } from './useActivityLogger';
 import { useAuth } from '../context/AuthContext';
 
-interface Task {
+export interface SubTask {
+    id: string;
+    text: string;
+    isCompleted: boolean;
+}
+
+export interface Task {
     id: string;
     text: string;
     completed: boolean;
@@ -12,6 +18,8 @@ interface Task {
     category: string;
     createdAt: Date;
     completedAt?: Date;
+    dueDate?: Date;
+    subtasks: SubTask[];
     xpValue: number;
 }
 
@@ -29,9 +37,13 @@ interface UseTasksReturn {
     setCategory: (category: string) => void;
     setFilterCategory: (category: string) => void;
     setFilterPriority: (priority: string) => void;
-    addTask: () => void;
+    addTask: (dueDate?: Date, subtasks?: SubTask[]) => void;
     toggleTask: (id: string) => void;
     deleteTask: (id: string) => void;
+    toggleSubTask: (taskId: string, subTaskId: string) => void;
+    addSubTask: (taskId: string, text: string) => void;
+    deleteSubTask: (taskId: string, subTaskId: string) => void;
+    updateTaskDueDate: (taskId: string, dueDate: Date | null) => void;
     completedCount: number;
     totalCount: number;
     filteredTasks: Task[];
@@ -92,6 +104,8 @@ export const useTasks = (): UseTasksReturn => {
                         category: t.category || 'study',
                         createdAt: new Date(t.createdAt),
                         completedAt: t.completedAt ? new Date(t.completedAt) : undefined,
+                        dueDate: t.dueDate ? new Date(t.dueDate) : undefined,
+                        subtasks: t.subtasks || [],
                         xpValue: XP_VALUES[t.priority as 'high' | 'medium' | 'low'] || 30,
                     }));
                     setTasks(mappedTasks);
@@ -124,7 +138,7 @@ export const useTasks = (): UseTasksReturn => {
         }
     };
 
-    const addTask = async () => {
+    const addTask = async (taskDueDate?: Date, taskSubtasks?: SubTask[]) => {
         if (newTask.trim() && status === 'authenticated') {
             try {
                 const response = await fetch('/api/tasks', {
@@ -134,6 +148,8 @@ export const useTasks = (): UseTasksReturn => {
                         text: newTask.trim(),
                         category,
                         priority,
+                        dueDate: taskDueDate ? taskDueDate.toISOString() : undefined,
+                        subtasks: taskSubtasks || [],
                     }),
                 });
 
@@ -146,6 +162,8 @@ export const useTasks = (): UseTasksReturn => {
                         priority: t.priority || priority,
                         category: t.category || category,
                         createdAt: new Date(t.createdAt),
+                        dueDate: t.dueDate ? new Date(t.dueDate) : undefined,
+                        subtasks: t.subtasks || [],
                         xpValue: XP_VALUES[priority],
                     };
                     setTasks([...tasks, newTaskObj]);
@@ -224,6 +242,133 @@ export const useTasks = (): UseTasksReturn => {
         }
     };
 
+    const toggleSubTask = async (taskId: string, subTaskId: string) => {
+        const task = tasks.find(t => t.id === taskId);
+        if (!task || status !== 'authenticated') return;
+
+        const updatedSubtasks = task.subtasks.map(st => {
+            if (st.id === subTaskId) {
+                return { ...st, isCompleted: !st.isCompleted };
+            }
+            return st;
+        });
+
+        try {
+            const response = await fetch('/api/tasks', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: taskId,
+                    subtasks: updatedSubtasks,
+                }),
+            });
+
+            if (response.ok) {
+                setTasks(tasks.map(t => {
+                    if (t.id === taskId) {
+                        return { ...t, subtasks: updatedSubtasks };
+                    }
+                    return t;
+                }));
+            }
+        } catch (err) {
+            console.error("Error toggling subtask:", err);
+        }
+    };
+
+    const addSubTask = async (taskId: string, text: string) => {
+        const task = tasks.find(t => t.id === taskId);
+        if (!task || !text.trim() || status !== 'authenticated') return;
+
+        const newSubTask: SubTask = {
+            id: 'subtask-' + Date.now(),
+            text: text.trim(),
+            isCompleted: false,
+        };
+
+        const updatedSubtasks = [...(task.subtasks || []), newSubTask];
+
+        try {
+            const response = await fetch('/api/tasks', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: taskId,
+                    subtasks: updatedSubtasks,
+                }),
+            });
+
+            if (response.ok) {
+                setTasks(tasks.map(t => {
+                    if (t.id === taskId) {
+                        return { ...t, subtasks: updatedSubtasks };
+                    }
+                    return t;
+                }));
+            }
+        } catch (err) {
+            console.error("Error adding subtask:", err);
+        }
+    };
+
+    const deleteSubTask = async (taskId: string, subTaskId: string) => {
+        const task = tasks.find(t => t.id === taskId);
+        if (!task || status !== 'authenticated') return;
+
+        const updatedSubtasks = task.subtasks.filter(st => st.id !== subTaskId);
+
+        try {
+            const response = await fetch('/api/tasks', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: taskId,
+                    subtasks: updatedSubtasks,
+                }),
+            });
+
+            if (response.ok) {
+                setTasks(tasks.map(t => {
+                    if (t.id === taskId) {
+                        return { ...t, subtasks: updatedSubtasks };
+                    }
+                    return t;
+                }));
+            }
+        } catch (err) {
+            console.error("Error deleting subtask:", err);
+        }
+    };
+
+    const updateTaskDueDate = async (taskId: string, dueDate: Date | null) => {
+        if (status !== 'authenticated') return;
+
+        try {
+            const response = await fetch('/api/tasks', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: taskId,
+                    dueDate: dueDate ? dueDate.toISOString() : null,
+                }),
+            });
+
+            if (response.ok) {
+                setTasks(tasks.map(t => {
+                    if (t.id === taskId) {
+                        return {
+                            ...t,
+                            dueDate: dueDate || undefined,
+                        };
+                    }
+                    return t;
+                }));
+            }
+        } catch (err) {
+            console.error("Error updating due date:", err);
+        }
+    };
+
     // Filter tasks
     const filteredTasks = tasks.filter(task => {
         const categoryMatch = filterCategory === 'all' || task.category === filterCategory;
@@ -252,6 +397,10 @@ export const useTasks = (): UseTasksReturn => {
         addTask,
         toggleTask,
         deleteTask,
+        toggleSubTask,
+        addSubTask,
+        deleteSubTask,
+        updateTaskDueDate,
         completedCount,
         totalCount,
         filteredTasks,

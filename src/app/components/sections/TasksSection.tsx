@@ -1,17 +1,6 @@
 import React, { useState } from 'react';
 import './tasks-styles.css';
-import { CATEGORIES } from '../../../app/hooks/useTasks';
-
-interface Task {
-    id: string;
-    text: string;
-    completed: boolean;
-    priority: 'high' | 'medium' | 'low';
-    category: string;
-    createdAt: Date;
-    completedAt?: Date;
-    xpValue: number;
-}
+import { CATEGORIES, SubTask, Task } from '../../../app/hooks/useTasks';
 
 interface TasksSectionProps {
     tasks: Task[];
@@ -27,9 +16,13 @@ interface TasksSectionProps {
     setCategory: (category: string) => void;
     setFilterCategory: (category: string) => void;
     setFilterPriority: (priority: string) => void;
-    addTask: () => void;
+    addTask: (dueDate?: Date, subtasks?: SubTask[]) => void;
     toggleTask: (id: string) => void;
     deleteTask: (id: string) => void;
+    toggleSubTask: (taskId: string, subTaskId: string) => void;
+    addSubTask: (taskId: string, text: string) => void;
+    deleteSubTask: (taskId: string, subTaskId: string) => void;
+    updateTaskDueDate: (taskId: string, dueDate: Date | null) => void;
     completedCount: number;
     totalCount: number;
     filteredTasks: Task[];
@@ -52,13 +45,20 @@ const TasksSection: React.FC<TasksSectionProps> = ({
     addTask,
     toggleTask,
     deleteTask,
+    toggleSubTask,
+    addSubTask,
+    deleteSubTask,
+    updateTaskDueDate,
     completedCount,
     totalCount,
     filteredTasks,
 }) => {
     const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
-    const [showInputOptions, setShowInputOptions] = useState(false);
+    const [isFocused, setIsFocused] = useState(false);
     const [showFilters, setShowFilters] = useState(false);
+    const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
+    const [inputDueDate, setInputDueDate] = useState('');
+    const showInputOptions = isFocused || newTask.length > 0 || inputDueDate.length > 0;
 
     const completionPercentage = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
 
@@ -73,6 +73,12 @@ const TasksSection: React.FC<TasksSectionProps> = ({
             deleteTask(id);
             setDeletingTaskId(null);
         }, 300);
+    };
+
+    const handleAddTask = () => {
+        if (!newTask.trim()) return;
+        addTask(inputDueDate ? new Date(inputDueDate) : undefined);
+        setInputDueDate('');
     };
 
     const getCategoryData = (categoryId: string) => {
@@ -201,19 +207,17 @@ const TasksSection: React.FC<TasksSectionProps> = ({
                     placeholder="Add a new task..."
                     onKeyPress={(e) => {
                         if (e.key === 'Enter') {
-                            addTask();
-                            setShowInputOptions(false);
+                            handleAddTask();
                         }
                     }}
-                    onFocus={() => setShowInputOptions(true)}
-                    onBlur={() => setShowInputOptions(false)}
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => setIsFocused(false)}
                 />
                 <button
                     className="btn btn-primary"
                     onMouseDown={(e) => e.preventDefault()} // Prevent input blur
                     onClick={() => {
-                        addTask();
-                        setShowInputOptions(false);
+                        handleAddTask();
                     }}
                 >
                     <i className="fas fa-plus"></i> Add
@@ -264,6 +268,19 @@ const TasksSection: React.FC<TasksSectionProps> = ({
                             </button>
                         ))}
                     </div>
+
+                    <div className="input-date-selector">
+                        <label onMouseDown={(e) => e.preventDefault()}>
+                            <i className="far fa-calendar-alt"></i> Due Date:
+                        </label>
+                        <input
+                            type="date"
+                            className="input-due-date"
+                            value={inputDueDate}
+                            onMouseDown={(e) => e.stopPropagation()}
+                            onChange={(e) => setInputDueDate(e.target.value)}
+                        />
+                    </div>
                 </div>
             )}
 
@@ -277,46 +294,146 @@ const TasksSection: React.FC<TasksSectionProps> = ({
                 ) : (
                     filteredTasks.map((task, index) => {
                         const categoryData = getCategoryData(task.category);
+                        const isOverdue = task.dueDate && !task.completed && new Date(task.dueDate) < new Date();
+                        const formattedDueDate = task.dueDate 
+                            ? new Date(task.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) 
+                            : '';
+                        
                         return (
                             <li
                                 key={task.id}
-                                className={`task-item ${deletingTaskId === task.id ? 'deleting' : ''}`}
+                                className={`task-item ${deletingTaskId === task.id ? 'deleting' : ''} ${expandedTaskId === task.id ? 'expanded' : ''}`}
                                 style={{ animationDelay: `${index * 0.05}s` }}
                             >
-                                <input
-                                    type="checkbox"
-                                    className="task-checkbox"
-                                    checked={task.completed}
-                                    onChange={() => toggleTask(task.id)}
-                                />
-                                <div className="task-content">
-                                    <span className={`task-text ${task.completed ? 'task-completed' : ''}`}>
-                                        {task.text}
-                                    </span>
-                                    <div className="task-meta">
-                                        <span className={`priority-badge ${task.priority}`}>
-                                            {task.priority === 'high' && <i className="fas fa-circle" style={{ color: '#EF4444' }}></i>}
-                                            {task.priority === 'medium' && <i className="fas fa-circle" style={{ color: '#F59E0B' }}></i>}
-                                            {task.priority === 'low' && <i className="fas fa-circle" style={{ color: '#10B981' }}></i>}
-                                            {' '}{task.priority}
+                                <div className="task-item-main">
+                                    <input
+                                        type="checkbox"
+                                        className="task-checkbox"
+                                        checked={task.completed}
+                                        onChange={() => toggleTask(task.id)}
+                                    />
+                                    <div className="task-content">
+                                        <span className={`task-text ${task.completed ? 'task-completed' : ''}`}>
+                                            {task.text}
                                         </span>
-                                        <span
-                                            className="category-pill"
-                                            style={{
-                                                backgroundColor: `${categoryData.color}20`,
-                                                borderColor: categoryData.color,
-                                                color: categoryData.color,
-                                            }}
+                                        <div className="task-meta">
+                                            <span className={`priority-badge ${task.priority}`}>
+                                                {task.priority === 'high' && <i className="fas fa-circle" style={{ color: '#EF4444' }}></i>}
+                                                {task.priority === 'medium' && <i className="fas fa-circle" style={{ color: '#F59E0B' }}></i>}
+                                                {task.priority === 'low' && <i className="fas fa-circle" style={{ color: '#10B981' }}></i>}
+                                                {' '}{task.priority}
+                                            </span>
+                                            <span
+                                                className="category-pill"
+                                                style={{
+                                                    backgroundColor: `${categoryData.color}20`,
+                                                    borderColor: categoryData.color,
+                                                    color: categoryData.color,
+                                                }}
+                                            >
+                                                <i className={categoryData.icon}></i> {categoryData.name}
+                                            </span>
+                                            <span className="xp-badge">+{task.xpValue} XP</span>
+                                            {formattedDueDate && (
+                                                <span className={`due-date-badge ${isOverdue ? 'overdue' : ''}`}>
+                                                    <i className="far fa-calendar-alt"></i> {formattedDueDate}
+                                                    {isOverdue && ' (Overdue)'}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="task-item-actions">
+                                        <button 
+                                            className={`expand-subtasks-btn ${expandedTaskId === task.id ? 'active' : ''}`}
+                                            onClick={() => setExpandedTaskId(expandedTaskId === task.id ? null : task.id)}
+                                            title="Toggle Sub-tasks"
                                         >
-                                            <i className={categoryData.icon}></i> {categoryData.name}
-                                        </span>
-                                        <span className="xp-badge">+{task.xpValue} XP</span>
+                                            <i className={`fas fa-${expandedTaskId === task.id ? 'chevron-up' : 'chevron-down'}`}></i>
+                                            <span>Sub-tasks ({task.subtasks?.length || 0})</span>
+                                        </button>
+                                        <i
+                                            className="fas fa-trash task-delete"
+                                            onClick={() => handleDeleteTask(task.id)}
+                                        ></i>
                                     </div>
                                 </div>
-                                <i
-                                    className="fas fa-trash task-delete"
-                                    onClick={() => handleDeleteTask(task.id)}
-                                ></i>
+
+                                {expandedTaskId === task.id && (
+                                    <div className="task-expanded-panel">
+                                        {/* Due Date Editor */}
+                                        <div className="inline-due-date-editor">
+                                            <label><i className="far fa-calendar-alt"></i> Edit Due Date: </label>
+                                            <input
+                                                type="date"
+                                                className="inline-date-input"
+                                                value={task.dueDate ? new Date(task.dueDate).toISOString().substring(0, 10) : ''}
+                                                onChange={(e) => {
+                                                    const dateVal = e.target.value;
+                                                    updateTaskDueDate(task.id, dateVal ? new Date(dateVal) : null);
+                                                }}
+                                            />
+                                        </div>
+
+                                        {/* Sub-tasks Section */}
+                                        <div className="subtasks-wrapper">
+                                            <h4>Sub-tasks Checklist</h4>
+                                            {task.subtasks && task.subtasks.length > 0 ? (
+                                                <ul className="subtask-list">
+                                                    {task.subtasks.map(st => (
+                                                        <li key={st.id} className="subtask-item">
+                                                            <input
+                                                                type="checkbox"
+                                                                className="subtask-checkbox"
+                                                                checked={st.isCompleted}
+                                                                onChange={() => toggleSubTask(task.id, st.id)}
+                                                            />
+                                                            <span className={`subtask-text ${st.isCompleted ? 'completed' : ''}`}>
+                                                                {st.text}
+                                                            </span>
+                                                            <i
+                                                                className="fas fa-times delete-subtask-btn"
+                                                                onClick={() => deleteSubTask(task.id, st.id)}
+                                                            ></i>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            ) : (
+                                                <p className="no-subtasks">No sub-tasks yet. Break your task down!</p>
+                                            )}
+
+                                            {/* Add Sub-task form */}
+                                            <div className="add-subtask-form">
+                                                <input
+                                                    type="text"
+                                                    placeholder="Add a sub-task..."
+                                                    className="subtask-input-field"
+                                                    id={`subtask-input-${task.id}`}
+                                                    onKeyPress={(e) => {
+                                                        if (e.key === 'Enter') {
+                                                            const target = e.target as HTMLInputElement;
+                                                            if (target.value.trim()) {
+                                                                addSubTask(task.id, target.value.trim());
+                                                                target.value = '';
+                                                            }
+                                                        }
+                                                    }}
+                                                />
+                                                <button
+                                                    className="btn-add-subtask"
+                                                    onClick={() => {
+                                                        const inputEl = document.getElementById(`subtask-input-${task.id}`) as HTMLInputElement;
+                                                        if (inputEl && inputEl.value.trim()) {
+                                                            addSubTask(task.id, inputEl.value.trim());
+                                                            inputEl.value = '';
+                                                        }
+                                                    }}
+                                                >
+                                                    <i className="fas fa-plus"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </li>
                         );
                     })
