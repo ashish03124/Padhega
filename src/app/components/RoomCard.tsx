@@ -83,8 +83,11 @@ const RoomCard: React.FC<RoomCardProps> = ({ room, onJoin }) => {
                     <Link
                         href={`/study-rooms/${room.id}`}
                         className="btn btn-primary"
-                        onClick={() => {
-                            if (onJoin) {
+                        onClick={(e) => {
+                            if (room.privacy === 'password' && onJoin) {
+                                e.preventDefault();
+                                handleJoinClick();
+                            } else if (onJoin) {
                                 handleJoinClick();
                             }
                         }}

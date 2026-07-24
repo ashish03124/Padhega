@@ -6,6 +6,7 @@ import { useStudyRooms } from '../hooks/useStudyRooms';
 import { useAuth } from '../context/AuthContext';
 import RoomCard from '../components/RoomCard';
 import CreateRoomModal from '../components/CreateRoomModal';
+import PasswordPromptModal from '../components/PasswordPromptModal';
 import { CreateRoomData } from '../lib/studyRoomTypes';
 import './study-rooms.css';
 
@@ -17,6 +18,11 @@ export default function StudyRoomsClient() {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [filter, setFilter] = useState<'all' | 'public' | 'my-rooms'>('all');
     const [searchQuery, setSearchQuery] = useState('');
+
+    const [passwordModalOpen, setPasswordModalOpen] = useState(false);
+    const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
+    const [selectedRoomName, setSelectedRoomName] = useState<string>('');
+    const [passwordError, setPasswordError] = useState<string | null>(null);
 
     const handleCreateRoom = async (data: CreateRoomData) => {
         const newRoom = await createRoom(data);
@@ -31,9 +37,35 @@ export default function StudyRoomsClient() {
             return;
         }
 
+        const room = rooms.find(r => r.id === roomId || r._id === roomId);
+        if (room && room.privacy === 'password') {
+            const isParticipant = room.participants.some(p => p.userId === user.id);
+            const isCreator = room.createdBy.id === user.id;
+
+            if (!isParticipant && !isCreator) {
+                setSelectedRoomId(roomId);
+                setSelectedRoomName(room.name);
+                setPasswordError(null);
+                setPasswordModalOpen(true);
+                return;
+            }
+        }
+
         const success = await joinRoom(roomId);
         if (success) {
             router.push(`/study-rooms/${roomId}`);
+        }
+    };
+
+    const handlePasswordSubmit = async (password: string) => {
+        if (!selectedRoomId) return;
+        setPasswordError(null);
+        const success = await joinRoom(selectedRoomId, password);
+        if (success) {
+            setPasswordModalOpen(false);
+            router.push(`/study-rooms/${selectedRoomId}`);
+        } else {
+            setPasswordError('Incorrect password');
         }
     };
 
@@ -179,6 +211,14 @@ export default function StudyRoomsClient() {
                 isOpen={showCreateModal}
                 onClose={() => setShowCreateModal(false)}
                 onCreate={handleCreateRoom}
+            />
+
+            <PasswordPromptModal
+                isOpen={passwordModalOpen}
+                onClose={() => setPasswordModalOpen(false)}
+                onSubmit={handlePasswordSubmit}
+                roomName={selectedRoomName}
+                error={passwordError}
             />
         </main>
     );

@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { roomId, name, description, subject, privacy, dailyRoomUrl, maxParticipants } = body;
+        const { roomId, name, description, subject, privacy, dailyRoomUrl, maxParticipants, password } = body;
 
         if (!roomId || !name) {
             return NextResponse.json({ error: 'Room ID and Name are required' }, { status: 400 });
@@ -68,6 +68,7 @@ export async function POST(request: NextRequest) {
                     description,
                     subject,
                     privacy: privacy || 'public',
+                    password: privacy === 'password' ? password : null,
                     dailyRoomUrl,
                     maxParticipants: maxParticipants || 20,
                     createdBy: session.user.id,
@@ -97,10 +98,26 @@ export async function PATCH(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { id, action, isActive } = await request.json();
+        const { id, action, isActive, password } = await request.json();
         if (!id) return NextResponse.json({ error: 'Room ID is required' }, { status: 400 });
 
         await connectToDatabase();
+
+        const roomObj = await StudyRoom.findOne({ $or: [{ _id: id }, { roomId: id }] });
+        if (!roomObj) return NextResponse.json({ error: 'Room not found' }, { status: 404 });
+
+        if (action === 'join' && roomObj.privacy === 'password') {
+            const isAlreadyParticipant = roomObj.participants.some(
+                (p: any) => p.toString() === session.user.id
+            );
+            const isCreator = roomObj.createdBy.toString() === session.user.id;
+            
+            if (!isAlreadyParticipant && !isCreator) {
+                if (!password || password !== roomObj.password) {
+                    return NextResponse.json({ error: 'Incorrect room password' }, { status: 401 });
+                }
+            }
+        }
 
         let update: any = {};
         if (action === 'join') {
@@ -115,13 +132,11 @@ export async function PATCH(request: NextRequest) {
         }
 
         const room = await StudyRoom.findOneAndUpdate(
-            { $or: [{ _id: id }, { roomId: id }] },
+            { _id: roomObj._id },
             update,
             { new: true }
         ).populate('createdBy', 'name email image')
             .populate('participants', 'name email image');
-
-        if (!room) return NextResponse.json({ error: 'Room not found' }, { status: 404 });
 
         return NextResponse.json(room);
     } catch (error: unknown) {

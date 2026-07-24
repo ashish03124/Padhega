@@ -39,6 +39,10 @@ export default function RoomPage() {
     const [room, setRoom] = useState(rooms.find(r => r.id === roomId));
     const [roomUrl, setRoomUrl] = useState<string>('');
     const [error, setError] = useState<string | null>(null);
+    const [directPassword, setDirectPassword] = useState('');
+
+    const isParticipant = room?.participants?.some((p: any) => p.userId === user?.id) || false;
+    const isCreator = room?.createdBy?.id === user?.id || false;
 
     const {
         token,
@@ -75,8 +79,11 @@ export default function RoomPage() {
 
         try {
             // Join the study room (local state)
-            const joined = joinRoom(roomId);
-            if (!joined) return;
+            const joined = await joinRoom(roomId, directPassword);
+            if (!joined) {
+                setError('Incorrect room password');
+                return;
+            }
 
             // Get LiveKit access token
             await getToken(roomId, user.name || 'Guest');
@@ -151,6 +158,26 @@ export default function RoomPage() {
                                 <span>{room.currentParticipantCount} / {room.maxParticipants} participants</span>
                             </div>
                         </div>
+
+                        {room.privacy === 'password' && !isParticipant && !isCreator && (
+                            <div className="form-group room-password-input-group" style={{ marginBottom: '1.5rem', textAlign: 'left' }}>
+                                <label htmlFor="direct-room-password" style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>
+                                    <i className="fas fa-lock"></i> Room Password
+                                </label>
+                                <input
+                                    id="direct-room-password"
+                                    type="password"
+                                    className="form-control"
+                                    placeholder="Enter room password..."
+                                    value={directPassword}
+                                    style={{ background: 'var(--glass-bg)', color: '#fff', border: '1px solid var(--glass-border)' }}
+                                    onChange={(e) => {
+                                        setDirectPassword(e.target.value);
+                                        setError(null);
+                                    }}
+                                />
+                            </div>
+                        )}
 
                         {error && (
                             <div className="error-message">

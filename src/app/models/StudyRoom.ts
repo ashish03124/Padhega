@@ -7,7 +7,8 @@ export interface IStudyRoom {
     description?: string;
     createdBy: mongoose.Types.ObjectId;
     subject?: string;
-    privacy: 'public' | 'private';
+    privacy: 'public' | 'private' | 'password';
+    password?: string;
     dailyRoomUrl?: string;
     maxParticipants: number;
     participants: mongoose.Types.ObjectId[];
@@ -45,8 +46,12 @@ const StudyRoomSchema = new Schema<IStudyRoom>(
         },
         privacy: {
             type: String,
-            enum: ['public', 'private'],
+            enum: ['public', 'private', 'password'],
             default: 'public',
+        },
+        password: {
+            type: String,
+            required: false,
         },
         dailyRoomUrl: {
             type: String,

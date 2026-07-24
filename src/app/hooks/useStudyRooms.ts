@@ -126,6 +126,7 @@ export const useStudyRooms = () => {
                 body: JSON.stringify({
                     id: roomId,
                     action: 'join',
+                    password,
                 }),
             });
 
@@ -143,6 +144,13 @@ export const useStudyRooms = () => {
                     } : r
                 ));
                 return true;
+            }
+            
+            // Show toast if API returned an error (e.g. incorrect password)
+            if (response.status === 401) {
+                showToast('Incorrect room password', 'error');
+            } else {
+                showToast('Failed to join study room', 'error');
             }
             return false;
         } catch (err) {
