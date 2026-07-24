@@ -20,6 +20,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://padhega.vercel.app'),
   title: "Padhega - Study With Me",
   description: "Study together with Pomodoro timer, resources, and focus music",
   icons: {
