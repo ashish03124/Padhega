@@ -188,7 +188,12 @@ export default function RoomPage() {
             {token && (
                 <div className="video-call-layout">
                     <div className="video-main">
-                        <VideoCall token={token} onLeave={handleLeaveRoom} />
+                        <VideoCall 
+                            key={token}
+                            token={token} 
+                            onLeave={handleLeaveRoom} 
+                            onRetry={handleJoinRoom} 
+                        />
                     </div>
                 </div>
             )}

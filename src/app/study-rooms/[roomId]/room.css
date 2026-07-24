@@ -633,3 +633,124 @@
         padding: 2rem 1.5rem;
     }
 }
+
+/* LiveKit Connection Status Indicators */
+
+.lk-connection-status-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    animation: fadeIn 0.25s ease-out;
+}
+
+.lk-status-card {
+    background: var(--glass-bg);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    border-radius: var(--radius-md);
+    padding: 2.5rem;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    color: #fff;
+}
+
+.lk-status-card.warning {
+    border-color: rgba(245, 158, 11, 0.3);
+}
+
+.lk-status-card.danger {
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.lk-status-card h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.lk-status-card p {
+    font-size: 0.9rem;
+    color: #9CA3AF;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.status-icon-large {
+    font-size: 3rem;
+    color: #EF4444;
+    margin-bottom: 0.5rem;
+    animation: pulseIcon 2s infinite;
+}
+
+@keyframes pulseIcon {
+    0% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.08); opacity: 1; }
+    100% { transform: scale(1); opacity: 0.8; }
+}
+
+/* Spinner small */
+.spinner-small {
+    width: 24px;
+    height: 24px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top: 3px solid #10B981;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.spinner-small.warning {
+    border-top-color: #F59E0B;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Connected Toast Badge */
+.lk-connection-status-toast {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    background: rgba(17, 24, 39, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+    border-radius: var(--radius-sm);
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    z-index: 900;
+    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    animation: slideInToast 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.lk-connection-status-toast .dot.connected {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #10B981;
+    box-shadow: 0 0 8px #10B981;
+}
+
+@keyframes slideInToast {
+    from { transform: translateY(-8px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
