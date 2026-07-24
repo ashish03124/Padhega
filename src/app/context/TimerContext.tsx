@@ -38,6 +38,8 @@ export const TimerProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
 
+  const isLoadedRef = useRef(false);
+
   // Activity logger for tracking sessions
   const { logTimerStart, logTimerPause, logTimerResume, logTimerComplete } = useTimerLogger();
 
@@ -50,6 +52,84 @@ export const TimerProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     shortBreak: 5,
     longBreak: 15
   });
+
+  // Load state from localStorage on mount
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const savedState = localStorage.getItem('padhega_timer_state');
+    if (savedState) {
+      try {
+        const parsed = JSON.parse(savedState);
+        const {
+          timerMode: savedMode,
+          timerMinutes: savedMinutes,
+          timerSeconds: savedSeconds,
+          isTimerRunning: savedRunning,
+          timerSettings: savedSettings,
+          lastUpdatedTimestamp: savedTimestamp,
+          sessionStartTime: savedSessionStart,
+          initialDuration: savedInitialDuration
+        } = parsed;
+
+        if (savedSettings) {
+          timerSettingsRef.current = savedSettings;
+        }
+
+        let currentMins = savedMinutes;
+        let currentSecs = savedSeconds;
+        let currentRunning = savedRunning;
+
+        if (savedRunning && savedTimestamp) {
+          const elapsedSeconds = Math.floor((Date.now() - savedTimestamp) / 1000);
+          const remainingSeconds = savedMinutes * 60 + savedSeconds;
+          const newRemaining = remainingSeconds - elapsedSeconds;
+
+          if (newRemaining > 0) {
+            currentMins = Math.floor(newRemaining / 60);
+            currentSecs = newRemaining % 60;
+          } else {
+            // Timer expired while away
+            currentMins = 0;
+            currentSecs = 0;
+            currentRunning = false;
+          }
+        }
+
+        setTimerMode(savedMode);
+        setTimerMinutes(currentMins);
+        setTimerSeconds(currentSecs);
+        setIsTimerRunning(currentRunning);
+        if (savedSessionStart) {
+          sessionStartTime.current = savedSessionStart;
+        }
+        if (savedInitialDuration) {
+          initialDuration.current = savedInitialDuration;
+        }
+      } catch (err) {
+        console.error('Error loading timer state from localStorage:', err);
+      }
+    }
+    isLoadedRef.current = true;
+  }, []);
+
+  // Save state to localStorage on state changes
+  useEffect(() => {
+    if (typeof window === 'undefined' || !isLoadedRef.current) return;
+
+    const stateToSave = {
+      timerMode,
+      timerMinutes,
+      timerSeconds,
+      isTimerRunning,
+      timerSettings: timerSettingsRef.current,
+      lastUpdatedTimestamp: Date.now(),
+      sessionStartTime: sessionStartTime.current,
+      initialDuration: initialDuration.current
+    };
+
+    localStorage.setItem('padhega_timer_state', JSON.stringify(stateToSave));
+  }, [timerMode, timerMinutes, timerSeconds, isTimerRunning]);
 
   // Timer Effect
   useEffect(() => {
