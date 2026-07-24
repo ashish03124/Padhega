@@ -1234,7 +1234,7 @@ section:hover {
   content: '';
   position: absolute;
   inset: 0;
-  background-image: url('/images/pomobg.png');
+  background-image: url('/images/pomobg.webp');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -2207,7 +2207,7 @@ footer {
 
 /* Timer UI Overrides */
 [data-theme='light'] .timer-box::before {
-  background-image: url('/images/pomodaybg.png');
+  background-image: url('/images/pomodaybg.webp');
   opacity: 0.15;
 }
 

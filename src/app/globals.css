@@ -80,7 +80,7 @@ body {
   background-color: var(--background);
   background-image:
     linear-gradient(rgba(10, 10, 10, 0.75), rgba(10, 10, 10, 0.85)),
-    url('/images/blossom-background-dark.png');
+    url('/images/blossom-background-dark.webp');
   background-size: cover;
   background-position: center center;
   background-attachment: fixed;

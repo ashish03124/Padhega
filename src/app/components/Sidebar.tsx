@@ -50,7 +50,7 @@ const Sidebar: React.FC = () => {
                 </nav>
                 <div className="sidebar-decoration">
                     <img src="/images/sidebar-sakura-light.png" alt="Decoration Light" className="sakura-light" />
-                    <img src="/images/sidebar-sakura-dark.png" alt="Decoration Dark" className="sakura-dark" />
+                    <img src="/images/sidebar-sakura-dark.webp" alt="Decoration Dark" className="sakura-dark" />
                 </div>
                 <div className="sidebar-footer">
                     <p>&copy; 2026 Padhega</p>

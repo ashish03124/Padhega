@@ -13,7 +13,7 @@
     content: '';
     position: absolute;
     inset: 0;
-    background-image: url('/images/musicbg.png');
+    background-image: url('/images/musicbg.webp');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -1309,7 +1309,7 @@
    =================================== */
 
 [data-theme='light'] .music-box::before {
-    background-image: url('/images/musicdaybg.png');
+    background-image: url('/images/musicdaybg.webp');
     opacity: 0.15;
 }
 
