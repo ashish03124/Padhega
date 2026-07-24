@@ -1101,6 +1101,14 @@
     animation: eqPulse 1.2s ease-in-out infinite alternate;
 }
 
+.waveform-overlay.real-time .eq-bar {
+    transition: none;
+}
+
+.waveform-overlay.playing.real-time .eq-bar {
+    animation: none;
+}
+
 .waveform-overlay.playing .eq-bar-1 {
     animation-delay: 0.1s;
 }

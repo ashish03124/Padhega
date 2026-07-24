@@ -44,6 +44,7 @@ interface MusicContextType {
     formatTime: (seconds: number) => string;
     youtubeOpts: any;
     handleLocalFileSelect: (file: File) => void;
+    audioAnalyser: AnalyserNode | null;
 }
 
 const MusicContext = createContext<MusicContextType | undefined>(undefined);
@@ -72,6 +73,46 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const localAudioRef = useRef<HTMLAudioElement | null>(null);
     const youtubePlayerRef = useRef<any>(null);
     const localFileUrlRef = useRef<string | null>(null);
+
+    const [audioAnalyser, setAudioAnalyser] = useState<AnalyserNode | null>(null);
+    const audioContextRef = useRef<AudioContext | null>(null);
+    const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
+
+    const initAudioAnalyser = () => {
+        if (typeof window === 'undefined') return;
+        if (audioAnalyser) return;
+        if (!localAudioRef.current) return;
+
+        try {
+            const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+            const ctx = new AudioContextClass();
+            const analyserNode = ctx.createAnalyser();
+            analyserNode.fftSize = 128; // Gives 64 frequency bins, perfect for 5 equalizer bars
+
+            if (!sourceNodeRef.current) {
+                sourceNodeRef.current = ctx.createMediaElementSource(localAudioRef.current);
+            }
+
+            sourceNodeRef.current.connect(analyserNode);
+            analyserNode.connect(ctx.destination);
+
+            audioContextRef.current = ctx;
+            setAudioAnalyser(analyserNode);
+        } catch (e) {
+            console.error('Failed to initialize Web Audio API Analyser:', e);
+        }
+    };
+
+    const resumeAudioContext = async () => {
+        initAudioAnalyser();
+        if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+            try {
+                await audioContextRef.current.resume();
+            } catch (e) {
+                console.error('Failed to resume AudioContext:', e);
+            }
+        }
+    };
 
     const queueRef = useRef<any[]>([]);
     const currentQueueIndexRef = useRef(-1);
@@ -194,6 +235,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                     localAudioRef.current.pause();
                     setIsPlaying(false);
                 } else {
+                    resumeAudioContext();
                     localAudioRef.current.play()
                         .then(() => setIsPlaying(true))
                         .catch(err => {
@@ -320,6 +362,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 localAudioRef.current.src = video.url;
                 localAudioRef.current.loop = !!video.isAmbient;
                 localAudioRef.current.volume = volume / 100;
+                resumeAudioContext();
                 localAudioRef.current.play().catch(err => console.error("Error playing audio:", err));
             }
         }
@@ -406,6 +449,9 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             }
             if (localFileUrlRef.current) {
                 URL.revokeObjectURL(localFileUrlRef.current);
+            }
+            if (audioContextRef.current) {
+                audioContextRef.current.close().catch(err => console.error("Error closing AudioContext:", err));
             }
         };
     }, []);
@@ -494,6 +540,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         handleSeek,
         formatTime,
         handleLocalFileSelect,
+        audioAnalyser,
     };
 
     return (

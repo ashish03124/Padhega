@@ -87,6 +87,7 @@ interface MusicSectionProps {
     formatTime: (seconds: number) => string;
     youtubeOpts: any;
     handleLocalFileSelect: (file: File) => void;
+    audioAnalyser: AnalyserNode | null;
 }
 
 const MusicSection: React.FC<MusicSectionProps> = ({
@@ -126,8 +127,58 @@ const MusicSection: React.FC<MusicSectionProps> = ({
     formatTime,
     youtubeOpts,
     handleLocalFileSelect,
+    audioAnalyser,
 }) => {
     const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0;
+    const barRefs = React.useRef<(HTMLDivElement | null)[]>([]);
+
+    React.useEffect(() => {
+        if (!audioAnalyser || !isPlaying || musicSource !== 'local') return;
+
+        const bufferLength = audioAnalyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+        let animationFrameId: number;
+
+        const updateBars = () => {
+            audioAnalyser.getByteFrequencyData(dataArray);
+
+            const ranges = [
+                { start: 1, end: 4 },
+                { start: 5, end: 9 },
+                { start: 10, end: 16 },
+                { start: 17, end: 25 },
+                { start: 26, end: 40 }
+            ];
+
+            ranges.forEach((range, idx) => {
+                const bar = barRefs.current[idx];
+                if (!bar) return;
+
+                let sum = 0;
+                for (let i = range.start; i <= range.end; i++) {
+                    sum += dataArray[i] || 0;
+                }
+                const avg = sum / (range.end - range.start + 1);
+
+                const minHeight = 10;
+                const maxHeight = 60;
+                const height = minHeight + (avg / 255) * (maxHeight - minHeight);
+
+                bar.style.height = `${height}px`;
+            });
+
+            animationFrameId = requestAnimationFrame(updateBars);
+        };
+
+        updateBars();
+
+        return () => {
+            cancelAnimationFrame(animationFrameId);
+            barRefs.current.forEach(bar => {
+                if (bar) bar.style.height = '';
+            });
+        };
+    }, [audioAnalyser, isPlaying, musicSource]);
 
     return (
         <section className="music-box">
@@ -323,10 +374,11 @@ const MusicSection: React.FC<MusicSectionProps> = ({
                     )}
 
                     {/* Waveform / Equalizer Overlay */}
-                    <div className={`waveform-overlay ${isPlaying ? 'playing' : 'idle'}`}>
+                    <div className={`waveform-overlay ${isPlaying ? 'playing' : 'idle'} ${musicSource === 'local' ? 'real-time' : ''}`}>
                         {[...Array(5)].map((_, i) => (
                             <div
                                 key={i}
+                                ref={(el) => { barRefs.current[i] = el; }}
                                 className={`eq-bar eq-bar-${i + 1}`}
                             ></div>
                         ))}
