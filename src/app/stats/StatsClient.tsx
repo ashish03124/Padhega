@@ -14,11 +14,26 @@ import {
     Legend,
     Filler
 } from 'chart.js';
-import { Line, Bar, Doughnut } from 'react-chartjs-2';
+import dynamic from 'next/dynamic';
 import './stats.css';
 import { useStatsData } from '../hooks/useStatsData';
 import AddGoalModal from '../components/AddGoalModal';
 import ActivityHistoryModal from '../components/ActivityHistoryModal';
+
+const Line = dynamic(() => import('react-chartjs-2').then((mod) => mod.Line), {
+    ssr: false,
+    loading: () => <div className="chart-loading-placeholder" style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', color: 'var(--text-secondary)' }}>Loading chart...</div>
+});
+
+const Bar = dynamic(() => import('react-chartjs-2').then((mod) => mod.Bar), {
+    ssr: false,
+    loading: () => <div className="chart-loading-placeholder" style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', color: 'var(--text-secondary)' }}>Loading chart...</div>
+});
+
+const Doughnut = dynamic(() => import('react-chartjs-2').then((mod) => mod.Doughnut), {
+    ssr: false,
+    loading: () => <div className="chart-loading-placeholder" style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', color: 'var(--text-secondary)' }}>Loading chart...</div>
+});
 
 // Register ChartJS components
 ChartJS.register(

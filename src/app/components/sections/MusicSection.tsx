@@ -1,7 +1,11 @@
 import React from 'react';
-import YouTube from 'react-youtube';
+import dynamic from 'next/dynamic';
 import './music-styles.css';
 import './minimal-visualizer.css';
+
+const YouTube = dynamic(() => import('react-youtube'), {
+    ssr: false,
+});
 
 const AMBIENT_SOUNDS = [
     {

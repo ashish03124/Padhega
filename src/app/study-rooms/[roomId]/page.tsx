@@ -5,10 +5,28 @@ import { useRouter, useParams } from 'next/navigation';
 import { useStudyRooms } from '../../hooks/useStudyRooms';
 import { useVideoCall } from '../../hooks/useVideoCall';
 import { useAuth } from '../../context/AuthContext';
-import VideoCall from '../../components/VideoCall';
+import dynamic from 'next/dynamic';
 import CallControls from '../../components/CallControls';
 import ChatPanel from '../../components/ChatPanel';
 import './room.css';
+
+const VideoCall = dynamic(() => import('../../components/VideoCall'), {
+    ssr: false,
+    loading: () => (
+        <div className="video-loading" style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '100%',
+            minHeight: '400px',
+            color: 'var(--text-secondary)'
+        }}>
+            <div className="spinner" style={{ marginBottom: '1rem' }}></div>
+            <p>Initializing video connection...</p>
+        </div>
+    ),
+});
 
 export default function RoomPage() {
     const params = useParams();
