@@ -50,6 +50,9 @@ const NotesSection: React.FC<NotesSectionProps> = ({
     const [showExportMenu, setShowExportMenu] = useState(false);
     const [showAIMenu, setShowAIMenu] = useState(false);
 
+    const aiTriggerRef = React.useRef<HTMLButtonElement>(null);
+    const exportTriggerRef = React.useRef<HTMLButtonElement>(null);
+
     // Close dropdowns when clicking outside
     React.useEffect(() => {
         const handleClick = () => {
@@ -62,6 +65,31 @@ const NotesSection: React.FC<NotesSectionProps> = ({
             return () => document.removeEventListener('click', handleClick);
         }
     }, [showExportMenu, showAIMenu]);
+
+    // Escape key close listeners for accessibility
+    React.useEffect(() => {
+        if (!showAIMenu) return;
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                setShowAIMenu(false);
+                aiTriggerRef.current?.focus();
+            }
+        };
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [showAIMenu]);
+
+    React.useEffect(() => {
+        if (!showExportMenu) return;
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                setShowExportMenu(false);
+                exportTriggerRef.current?.focus();
+            }
+        };
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [showExportMenu]);
 
     const getModeTitle = () => {
         switch (aiMode) {
@@ -82,34 +110,39 @@ const NotesSection: React.FC<NotesSectionProps> = ({
                     {/* AI Assistant Button */}
                     <div className="dropdown-container">
                         <button
+                            ref={aiTriggerRef}
                             className="btn btn-icon ai-trigger"
                             onClick={() => setShowAIMenu(!showAIMenu)}
                             title="AI Tools"
+                            aria-expanded={showAIMenu}
+                            aria-haspopup="true"
+                            aria-controls="ai-assistant-menu"
+                            aria-label="AI Assistant Menu"
                         >
                             <i className="fas fa-robot"></i>
                             <span>AI</span>
                         </button>
                         {showAIMenu && (
-                            <div className="ai-dropdown">
-                                <button onClick={() => { summarizeNotes('bullet'); setShowAIMenu(false); }}>
+                            <div className="ai-dropdown" id="ai-assistant-menu" role="menu">
+                                <button role="menuitem" onClick={() => { summarizeNotes('bullet'); setShowAIMenu(false); }}>
                                     <i className="fas fa-list"></i> Summarize (Bullets)
                                 </button>
-                                <button onClick={() => { summarizeNotes('short'); setShowAIMenu(false); }}>
+                                <button role="menuitem" onClick={() => { summarizeNotes('short'); setShowAIMenu(false); }}>
                                     <i className="fas fa-compress"></i> Quick Summary
                                 </button>
-                                <button onClick={() => { generateFlashcards(); setShowAIMenu(false); }}>
+                                <button role="menuitem" onClick={() => { generateFlashcards(); setShowAIMenu(false); }}>
                                     <i className="fas fa-id-card"></i> Generate Flashcards
                                 </button>
-                                <button onClick={() => { generateQuiz(); setShowAIMenu(false); }}>
+                                <button role="menuitem" onClick={() => { generateQuiz(); setShowAIMenu(false); }}>
                                     <i className="fas fa-question-circle"></i> Generate Quiz
                                 </button>
-                                <button onClick={() => { checkGrammar(); setShowAIMenu(false); }}>
+                                <button role="menuitem" onClick={() => { checkGrammar(); setShowAIMenu(false); }}>
                                     <i className="fas fa-spell-check"></i> Check Grammar
                                 </button>
-                                <button onClick={() => { extractKeyTerms(); setShowAIMenu(false); }}>
+                                <button role="menuitem" onClick={() => { extractKeyTerms(); setShowAIMenu(false); }}>
                                     <i className="fas fa-key"></i> Extract Key Terms
                                 </button>
-                                <button onClick={() => { enhanceNotesWithAI(); setShowAIMenu(false); }}>
+                                <button role="menuitem" onClick={() => { enhanceNotesWithAI(); setShowAIMenu(false); }}>
                                     <i className="fas fa-magic"></i> Enhance Notes
                                 </button>
                             </div>
@@ -124,21 +157,26 @@ const NotesSection: React.FC<NotesSectionProps> = ({
                     {/* Export Menu */}
                     <div className="dropdown-container">
                         <button
+                            ref={exportTriggerRef}
                             className="btn btn-icon"
                             onClick={() => setShowExportMenu(!showExportMenu)}
                             title="Export"
+                            aria-expanded={showExportMenu}
+                            aria-haspopup="true"
+                            aria-controls="export-notes-menu"
+                            aria-label="Export Menu"
                         >
                             <i className="fas fa-download"></i>
                         </button>
                         {showExportMenu && (
-                            <div className="export-dropdown">
-                                <button onClick={() => { handleDownloadNotes('html'); setShowExportMenu(false); }}>
+                            <div className="export-dropdown" id="export-notes-menu" role="menu">
+                                <button role="menuitem" onClick={() => { handleDownloadNotes('html'); setShowExportMenu(false); }}>
                                     <i className="fas fa-code"></i> HTML
                                 </button>
-                                <button onClick={() => { handleDownloadNotes('markdown'); setShowExportMenu(false); }}>
+                                <button role="menuitem" onClick={() => { handleDownloadNotes('markdown'); setShowExportMenu(false); }}>
                                     <i className="fab fa-markdown"></i> Markdown
                                 </button>
-                                <button onClick={() => { handleDownloadNotes('txt'); setShowExportMenu(false); }}>
+                                <button role="menuitem" onClick={() => { handleDownloadNotes('txt'); setShowExportMenu(false); }}>
                                     <i className="fas fa-file-alt"></i> Text
                                 </button>
                             </div>

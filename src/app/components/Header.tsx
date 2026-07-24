@@ -15,9 +15,36 @@ const Header: React.FC = () => {
   const [settingsTab, setSettingsTab] = useState<'profile' | 'settings'>('profile');
   const dropdownRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<HTMLDivElement>(null);
+  const notificationTriggerRef = useRef<HTMLButtonElement>(null);
+  const profileTriggerRef = useRef<HTMLButtonElement>(null);
   const { user, setShowAuthModal, logout } = useAuth();
   const { toggleMenu } = useMobileMenu();
   const router = useRouter();
+
+  // Escape key close listeners for accessibility
+  useEffect(() => {
+    if (!showNotifications) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowNotifications(false);
+        notificationTriggerRef.current?.focus();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [showNotifications]);
+
+  useEffect(() => {
+    if (!showDropdown) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowDropdown(false);
+        profileTriggerRef.current?.focus();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [showDropdown]);
 
   // Mock Notifications
   const [notifications, setNotifications] = useState([
@@ -116,16 +143,20 @@ const Header: React.FC = () => {
             {/* Notification Bell */}
             <div className="notification-menu-container" ref={notificationRef}>
               <button 
+                ref={notificationTriggerRef}
                 className={`notification-bell ${showNotifications ? 'active' : ''}`} 
                 onClick={toggleNotifications}
                 aria-label="Notifications"
+                aria-expanded={showNotifications}
+                aria-haspopup="true"
+                aria-controls="notification-dropdown-menu"
               >
                 <i className="fas fa-bell"></i>
                 {unreadCount > 0 && <span className="notification-dot"></span>}
               </button>
 
               {showNotifications && (
-                <div className="notification-dropdown">
+                <div className="notification-dropdown" id="notification-dropdown-menu" role="menu">
                   <div className="dropdown-header">
                     <div className="header-flex">
                       <span className="dropdown-name">Notifications</span>
@@ -144,6 +175,15 @@ const Header: React.FC = () => {
                           key={notif.id} 
                           className={`notification-item ${notif.read ? 'read' : 'unread'}`}
                           onClick={() => markAsRead(notif.id, (notif as any).link)}
+                          role="button"
+                          tabIndex={0}
+                          aria-label={`Notification: ${notif.title}. ${notif.message}`}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              markAsRead(notif.id, (notif as any).link);
+                            }
+                          }}
                         >
                           <div className={`notif-icon-circle ${notif.type}`}>
                             <i className={`fas fa-${notif.type === 'success' ? 'check' : notif.type === 'warning' ? 'exclamation' : 'info'}-circle`}></i>
@@ -168,7 +208,15 @@ const Header: React.FC = () => {
 
             {/* Profile Dropdown */}
             <div className="profile-menu-container" ref={dropdownRef}>
-              <button className="avatar-btn" onClick={toggleDropdown} aria-label="Profile menu">
+              <button 
+                ref={profileTriggerRef}
+                className="avatar-btn" 
+                onClick={toggleDropdown} 
+                aria-label="Profile menu"
+                aria-expanded={showDropdown}
+                aria-haspopup="true"
+                aria-controls="profile-dropdown-menu"
+              >
                 {user.image ? (
                   <img src={user.image} alt="Profile" className="avatar-img" />
                 ) : (
@@ -177,20 +225,20 @@ const Header: React.FC = () => {
               </button>
 
               {showDropdown && (
-                <div className="profile-dropdown">
+                <div className="profile-dropdown" id="profile-dropdown-menu" role="menu">
                   <div className="dropdown-header">
                     <span className="dropdown-name">{user.name}</span>
                     <span className="dropdown-email">{user.email || 'user@example.com'}</span>
                   </div>
                   <div className="dropdown-divider"></div>
-                  <button className="dropdown-item" onClick={() => { setShowSettingsModal(true); setSettingsTab('profile'); setShowDropdown(false); }}>
+                  <button role="menuitem" className="dropdown-item" onClick={() => { setShowSettingsModal(true); setSettingsTab('profile'); setShowDropdown(false); }}>
                     <i className="fas fa-user-circle"></i> Profile
                   </button>
-                  <button className="dropdown-item" onClick={() => { setShowSettingsModal(true); setSettingsTab('settings'); setShowDropdown(false); }}>
+                  <button role="menuitem" className="dropdown-item" onClick={() => { setShowSettingsModal(true); setSettingsTab('settings'); setShowDropdown(false); }}>
                     <i className="fas fa-cog"></i> Settings
                   </button>
                   <div className="dropdown-divider"></div>
-                  <button className="dropdown-item text-danger" onClick={logout}>
+                  <button role="menuitem" className="dropdown-item text-danger" onClick={logout}>
                     <i className="fas fa-sign-out-alt"></i> Logout
                   </button>
                 </div>
