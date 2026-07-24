@@ -1,6 +1,7 @@
 "use client";
- 
+
 import React, { createContext, useContext, useState, useRef, useEffect } from 'react';
+import YouTube from 'react-youtube';
 import { showToast } from '../components/Toast';
 
 interface MusicContextType {
@@ -20,10 +21,12 @@ interface MusicContextType {
     queue: any[];
     currentQueueIndex: number;
     isShuffled: boolean;
+    showVideo: boolean;
     youtubePlayerRef: React.MutableRefObject<any>;
     setYoutubeUrl: (url: string) => void;
     setSearchQuery: (query: string) => void;
     setShowMusicSettingsModal: (show: boolean) => void;
+    setShowVideo: (show: boolean) => void;
     handleMusicSourceChange: (source: 'youtube' | 'local') => void;
     handleLoadMusic: () => void;
     onYouTubeReady: (event: any) => void;
@@ -57,28 +60,59 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const [isSearchingMusic, setIsSearchingMusic] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [showMusicSettingsModal, setShowMusicSettingsModal] = useState(false);
+    const [showVideo, setShowVideo] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
 
-    // Queue state for next/previous navigation
+    // Queue state
     const [queue, setQueue] = useState<any[]>([]);
     const [currentQueueIndex, setCurrentQueueIndex] = useState(-1);
     const [isShuffled, setIsShuffled] = useState(false);
 
     const localAudioRef = useRef<HTMLAudioElement | null>(null);
+    const youtubePlayerRef = useRef<any>(null);
     const localFileUrlRef = useRef<string | null>(null);
-    const dummyYoutubePlayerRef = useRef<any>(null);
 
-    // Keep a ref to queue/index so callbacks can read latest values
     const queueRef = useRef<any[]>([]);
     const currentQueueIndexRef = useRef(-1);
     const isShuffledRef = useRef(false);
 
-    // Extract video ID from various YouTube URL formats
     const extractVideoId = (url: string): string => {
         const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))v?=?([^#&?]*).*/;
         const match = url.match(regExp);
         return (match && match[7].length === 11) ? match[7] : '';
+    };
+
+    const youtubeOpts = {
+        height: '100%',
+        width: '100%',
+        playerVars: {
+            autoplay: 1,
+            controls: 1,
+            modestbranding: 1,
+            rel: 0,
+            origin: typeof window !== 'undefined' ? window.location.origin : '',
+        },
+    };
+
+    const onYouTubeReady = (event: any) => {
+        youtubePlayerRef.current = event.target;
+        event.target.setVolume(volume);
+        if (isPlaying) {
+            event.target.playVideo();
+        }
+    };
+
+    const onYouTubeStateChange = (event: any) => {
+        // YT.PlayerState: 1 = PLAYING, 2 = PAUSED, 0 = ENDED
+        if (event.data === 1) {
+            setIsPlaying(true);
+        } else if (event.data === 2) {
+            setIsPlaying(false);
+        } else if (event.data === 0) {
+            setIsPlaying(false);
+            handleNextTrack();
+        }
     };
 
     const handleLoadMusic = () => {
@@ -86,8 +120,8 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (id) {
             const track = {
                 videoId: id,
-                title: 'Loading YouTube Track...',
-                url: `/api/music/stream?id=${id}`,
+                title: 'Loaded YouTube Track',
+                url: youtubeUrl,
                 thumbnail: `https://img.youtube.com/vi/${id}/mqdefault.jpg`,
             };
             setMusicSource('youtube');
@@ -97,17 +131,14 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
     };
 
-    const onYouTubeReady = () => {};
-    const onYouTubeStateChange = () => {};
-
     const handleAudioTimeUpdate = () => {
-        if (localAudioRef.current) {
+        if (musicSource === 'local' && localAudioRef.current) {
             setCurrentTime(localAudioRef.current.currentTime);
         }
     };
 
     const handleAudioDurationChange = () => {
-        if (localAudioRef.current) {
+        if (musicSource === 'local' && localAudioRef.current) {
             setDuration(localAudioRef.current.duration || 0);
         }
     };
@@ -118,37 +149,58 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (localAudioRef.current && localAudioRef.current.loop) {
             localAudioRef.current.play()
                 .then(() => setIsPlaying(true))
-                .catch(err => console.error("Error looping audio:", err));
+                .catch(err => console.error("Loop error:", err));
         } else {
             handleNextTrack();
         }
     };
 
-    const handleAudioError = (e: any) => {
-        console.error("Audio playback error:", e);
-        setIsPlaying(false);
-        if (musicSource === 'youtube') {
-            showToast("Failed to stream YouTube audio. Attempting next track...", "error");
-            setTimeout(() => {
-                handleNextTrack();
-            }, 3000);
-        } else {
-            showToast("Failed to play audio file.", "error");
+    // YouTube player progress tracking timer
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+        if (isPlaying && musicSource === 'youtube' && youtubePlayerRef.current) {
+            interval = setInterval(() => {
+                try {
+                    if (youtubePlayerRef.current.getCurrentTime && youtubePlayerRef.current.getDuration) {
+                        const cur = youtubePlayerRef.current.getCurrentTime() || 0;
+                        const dur = youtubePlayerRef.current.getDuration() || 0;
+                        setCurrentTime(cur);
+                        setDuration(dur);
+                    }
+                } catch (e) {
+                    // Ignore transient errors
+                }
+            }, 500);
         }
-    };
+        return () => clearInterval(interval);
+    }, [isPlaying, musicSource]);
 
     const handlePlayPauseMusic = () => {
-        if (localAudioRef.current) {
-            if (isPlaying) {
-                localAudioRef.current.pause();
-                setIsPlaying(false);
-            } else {
-                localAudioRef.current.play()
-                    .then(() => setIsPlaying(true))
-                    .catch(err => {
-                        console.error("Error playing audio:", err);
-                        setIsPlaying(false);
-                    });
+        if (musicSource === 'youtube') {
+            if (youtubePlayerRef.current) {
+                if (isPlaying) {
+                    youtubePlayerRef.current.pauseVideo();
+                    setIsPlaying(false);
+                } else {
+                    youtubePlayerRef.current.playVideo();
+                    setIsPlaying(true);
+                }
+            } else if (videoId) {
+                setIsPlaying(true);
+            }
+        } else {
+            if (localAudioRef.current) {
+                if (isPlaying) {
+                    localAudioRef.current.pause();
+                    setIsPlaying(false);
+                } else {
+                    localAudioRef.current.play()
+                        .then(() => setIsPlaying(true))
+                        .catch(err => {
+                            console.error("Error playing audio:", err);
+                            setIsPlaying(false);
+                        });
+                }
             }
         }
     };
@@ -156,6 +208,9 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newVolume = parseInt(e.target.value);
         setVolume(newVolume);
+        if (youtubePlayerRef.current && youtubePlayerRef.current.setVolume) {
+            youtubePlayerRef.current.setVolume(newVolume);
+        }
         if (localAudioRef.current) {
             localAudioRef.current.volume = newVolume / 100;
         }
@@ -165,6 +220,9 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setMusicSource(source);
         setMusicSearchResults([]);
         
+        if (youtubePlayerRef.current && youtubePlayerRef.current.pauseVideo) {
+            youtubePlayerRef.current.pauseVideo();
+        }
         if (localAudioRef.current) {
             localAudioRef.current.pause();
         }
@@ -176,7 +234,6 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setDuration(0);
     };
 
-    // Abort controller for cancelling previous searches
     const abortControllerRef = useRef<AbortController | null>(null);
     const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -191,25 +248,15 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setIsSearchingMusic(true);
         setMusicSearchResults([]);
 
-        const timeoutWarning = setTimeout(() => {
-            console.log('⏳ Music search is taking longer than expected...');
-        }, 15000);
-
         try {
             const response = await fetch(
                 `/api/music/search?q=${encodeURIComponent(searchQuery)}`,
                 { signal: abortControllerRef.current.signal }
             );
 
-            clearTimeout(timeoutWarning);
             const data = await response.json();
 
             if (!response.ok) {
-                if (response.status === 504) {
-                    console.warn('⚠️ Search timed out. Try a simpler search term.');
-                    setMusicSearchResults([]);
-                    return;
-                }
                 throw new Error(data.error || 'Failed to search music');
             }
 
@@ -217,17 +264,9 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 setMusicSearchResults(data.videos);
             }
         } catch (error: any) {
-            clearTimeout(timeoutWarning);
-
-            if (error.name === 'AbortError') {
-                console.log('Search cancelled');
-                return;
-            }
-
+            if (error.name === 'AbortError') return;
             console.error('Error searching music:', error);
-            if (error.message !== 'Search timeout') {
-                showToast(error.message || 'Failed to search music. Please try again.', 'error');
-            }
+            showToast(error.message || 'Failed to search music.', 'error');
         } finally {
             setIsSearchingMusic(false);
         }
@@ -237,7 +276,6 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (searchTimeoutRef.current) {
             clearTimeout(searchTimeoutRef.current);
         }
-
         searchTimeoutRef.current = setTimeout(() => {
             handleMusicSearch();
         }, 500);
@@ -254,36 +292,37 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setCurrentQueueIndex(resolvedIdx);
 
         const isLocalOrAmbient = video.isLocal || video.isAmbient;
-        setMusicSource(isLocalOrAmbient ? 'local' : 'youtube');
+        const isYT = !isLocalOrAmbient;
 
-        const resolvedUrl = isLocalOrAmbient ? video.url : `/api/music/stream?id=${video.videoId}`;
-
-        if (localAudioRef.current) {
-            localAudioRef.current.pause();
-            localAudioRef.current.src = resolvedUrl;
-            localAudioRef.current.loop = !!video.isAmbient;
-            localAudioRef.current.volume = volume / 100;
-            
-            const playPromise = localAudioRef.current.play();
-            if (playPromise !== undefined) {
-                playPromise
-                    .then(() => {
-                        setIsPlaying(true);
-                    })
-                    .catch((err) => {
-                        console.error("Failed to play native audio:", err);
-                        setIsPlaying(false);
-                    });
-            }
-        }
-
-        setVideoId(video.videoId);
-        setYoutubeUrl(video.url);
+        setMusicSource(isYT ? 'youtube' : 'local');
+        setVideoId(isYT ? video.videoId : '');
+        setYoutubeUrl(video.url || '');
         setNowPlaying(video.title || 'Loading...');
         setThumbnail(video.thumbnail || '');
         setMusicSearchResults([]);
         setCurrentTime(0);
         setDuration(0);
+        setIsPlaying(true);
+
+        if (isYT) {
+            if (localAudioRef.current) {
+                localAudioRef.current.pause();
+            }
+            if (youtubePlayerRef.current && youtubePlayerRef.current.loadVideoById) {
+                youtubePlayerRef.current.loadVideoById(video.videoId);
+            }
+        } else {
+            if (youtubePlayerRef.current && youtubePlayerRef.current.pauseVideo) {
+                youtubePlayerRef.current.pauseVideo();
+            }
+            if (localAudioRef.current) {
+                localAudioRef.current.pause();
+                localAudioRef.current.src = video.url;
+                localAudioRef.current.loop = !!video.isAmbient;
+                localAudioRef.current.volume = volume / 100;
+                localAudioRef.current.play().catch(err => console.error("Error playing audio:", err));
+            }
+        }
     };
 
     const handleLocalFileSelect = (file: File) => {
@@ -323,9 +362,8 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const q = queueRef.current;
         if (q.length === 0) return;
         
-        if (localAudioRef.current && localAudioRef.current.currentTime > 3) {
-            localAudioRef.current.currentTime = 0;
-            setCurrentTime(0);
+        if (currentTime > 3) {
+            handleSeek({ target: { value: '0' } } as any);
             return;
         }
         
@@ -344,7 +382,9 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newTime = parseFloat(e.target.value);
         setCurrentTime(newTime);
-        if (localAudioRef.current) {
+        if (musicSource === 'youtube' && youtubePlayerRef.current && youtubePlayerRef.current.seekTo) {
+            youtubePlayerRef.current.seekTo(newTime, true);
+        } else if (musicSource === 'local' && localAudioRef.current) {
             localAudioRef.current.currentTime = newTime;
         }
     };
@@ -356,7 +396,6 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
-    // Cleanup on unmount
     useEffect(() => {
         return () => {
             if (abortControllerRef.current) {
@@ -371,7 +410,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         };
     }, []);
 
-    // Media Session API for lock screen / background playback controls
+    // Media Session API for lock screen controls
     useEffect(() => {
         if (typeof window !== 'undefined' && 'mediaSession' in navigator) {
             try {
@@ -387,10 +426,9 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                         }
                     ]
                 });
-
                 navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
             } catch (error) {
-                console.error('Error updating Media Session metadata:', error);
+                console.error('Media Session error:', error);
             }
         }
     }, [nowPlaying, thumbnail, isPlaying, musicSource, videoId]);
@@ -399,17 +437,10 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (typeof window !== 'undefined' && 'mediaSession' in navigator) {
             try {
                 navigator.mediaSession.setActionHandler('play', () => {
-                    if (localAudioRef.current) {
-                        localAudioRef.current.play()
-                            .then(() => setIsPlaying(true))
-                            .catch(err => console.error("Media Session play error:", err));
-                    }
+                    handlePlayPauseMusic();
                 });
                 navigator.mediaSession.setActionHandler('pause', () => {
-                    if (localAudioRef.current) {
-                        localAudioRef.current.pause();
-                        setIsPlaying(false);
-                    }
+                    handlePlayPauseMusic();
                 });
                 navigator.mediaSession.setActionHandler('previoustrack', () => {
                     handlePrevTrack();
@@ -417,21 +448,11 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 navigator.mediaSession.setActionHandler('nexttrack', () => {
                     handleNextTrack();
                 });
-                navigator.mediaSession.setActionHandler('seekto', (details) => {
-                    if (details.seekTime !== undefined) {
-                        if (localAudioRef.current) {
-                            localAudioRef.current.currentTime = details.seekTime;
-                            setCurrentTime(details.seekTime);
-                        }
-                    }
-                });
             } catch (error) {
-                console.error('Error setting Media Session action handlers:', error);
+                console.error('Media Session handlers error:', error);
             }
         }
-    }, [videoId, queue, currentQueueIndex, isShuffled, musicSource]);
-
-    const youtubeOpts = {};
+    }, [videoId, queue, currentQueueIndex, isShuffled, musicSource, isPlaying]);
 
     const musicContextValue: MusicContextType = {
         musicSource,
@@ -450,10 +471,12 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         queue,
         currentQueueIndex,
         isShuffled,
-        youtubePlayerRef: dummyYoutubePlayerRef,
+        showVideo,
+        youtubePlayerRef,
         setYoutubeUrl,
         setSearchQuery,
         setShowMusicSettingsModal,
+        setShowVideo,
         handleMusicSourceChange,
         handleLoadMusic,
         onYouTubeReady,
@@ -476,7 +499,6 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return (
         <MusicContext.Provider value={musicContextValue}>
             {children}
-            {/* Unified Native HTML5 Audio element for all playback (YouTube & Local) */}
             <audio
                 ref={localAudioRef}
                 playsInline
@@ -487,7 +509,6 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 onEnded={handleAudioEnded}
                 onPlay={() => setIsPlaying(true)}
                 onPause={() => setIsPlaying(false)}
-                onError={handleAudioError}
             />
         </MusicContext.Provider>
     );

@@ -30,7 +30,7 @@ const CallControls: React.FC<CallControlsProps> = ({
                     title={isMicOn ? 'Mute microphone' : 'Unmute microphone'}
                 >
                     <i className={`fas fa-${isMicOn ? 'microphone' : 'microphone-slash'}`}></i>
-                    <span>{isMicOn ? 'Mute' : 'Unmuted'}</span>
+                    <span>{isMicOn ? 'Mute' : 'Unmute'}</span>
                 </button>
 
                 <button

@@ -156,7 +156,7 @@ const TasksSection: React.FC<TasksSectionProps> = ({
                                 className={`filter-btn ${filterCategory === cat.id ? 'active' : ''}`}
                                 onClick={() => setFilterCategory(cat.id)}
                             >
-                                {cat.icon} {cat.name}
+                                <i className={cat.icon}></i> {cat.name}
                             </button>
                         ))}
                     </div>

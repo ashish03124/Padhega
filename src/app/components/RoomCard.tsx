@@ -80,7 +80,15 @@ const RoomCard: React.FC<RoomCardProps> = ({ room, onJoin }) => {
                         <i className="fas fa-ban"></i> Room Full
                     </button>
                 ) : (
-                    <Link href={`/study-rooms/${room.id}`} className="btn btn-primary">
+                    <Link
+                        href={`/study-rooms/${room.id}`}
+                        className="btn btn-primary"
+                        onClick={() => {
+                            if (onJoin) {
+                                handleJoinClick();
+                            }
+                        }}
+                    >
                         <i className="fas fa-door-open"></i> Join Room
                     </Link>
                 )}
