@@ -47,9 +47,18 @@ interface MusicContextType {
     audioAnalyser: AnalyserNode | null;
 }
 
+const AMBIENT_AUDIO_URLS = [
+    'https://assets.mixkit.co/active_storage/sfx/2433/2433-84.wav',
+    'https://assets.mixkit.co/active_storage/sfx/2508/2508-84.wav',
+    'https://assets.mixkit.co/active_storage/sfx/2438/2438-84.wav',
+    'https://assets.mixkit.co/active_storage/sfx/2432/2432-84.wav',
+    'https://assets.mixkit.co/active_storage/sfx/2568/2568-84.wav'
+];
+
 const MusicContext = createContext<MusicContextType | undefined>(undefined);
 
 export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const activeBlobUrlsRef = useRef<Map<string, string>>(new Map());
     const [musicSource, setMusicSource] = useState<'youtube' | 'local'>('youtube');
     const [youtubeUrl, setYoutubeUrl] = useState('');
     const [videoId, setVideoId] = useState('');
@@ -113,6 +122,67 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             }
         }
     };
+
+    const getPlayableAudioUrl = async (url: string): Promise<string> => {
+        if (typeof window === 'undefined') return url;
+
+        if (!AMBIENT_AUDIO_URLS.includes(url)) {
+            return url;
+        }
+
+        if (activeBlobUrlsRef.current.has(url)) {
+            return activeBlobUrlsRef.current.get(url)!;
+        }
+
+        try {
+            const cache = await caches.open('padhega-ambient-audio-v1');
+            let response = await cache.match(url);
+
+            if (!response) {
+                console.log(`Cache miss for ${url}, fetching to cache...`);
+                response = await fetch(url);
+                if (response.ok) {
+                    await cache.put(url, response.clone());
+                } else {
+                    return url;
+                }
+            }
+
+            const blob = await response.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            activeBlobUrlsRef.current.set(url, blobUrl);
+            return blobUrl;
+        } catch (err) {
+            console.error('Error resolving cached audio URL:', err);
+            return url;
+        }
+    };
+
+    // Pre-cache ambient focus sounds in the background
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+
+        const preCacheAmbientSounds = async () => {
+            try {
+                const cache = await caches.open('padhega-ambient-audio-v1');
+                for (const url of AMBIENT_AUDIO_URLS) {
+                    const match = await cache.match(url);
+                    if (!match) {
+                        const response = await fetch(url);
+                        if (response.ok) {
+                            await cache.put(url, response);
+                            console.log(`Pre-cached ambient sound: ${url}`);
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error('Error pre-caching ambient sounds:', err);
+            }
+        };
+
+        const timer = setTimeout(preCacheAmbientSounds, 3000);
+        return () => clearTimeout(timer);
+    }, []);
 
     const queueRef = useRef<any[]>([]);
     const currentQueueIndexRef = useRef(-1);
@@ -359,11 +429,15 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             }
             if (localAudioRef.current) {
                 localAudioRef.current.pause();
-                localAudioRef.current.src = video.url;
-                localAudioRef.current.loop = !!video.isAmbient;
-                localAudioRef.current.volume = volume / 100;
-                resumeAudioContext();
-                localAudioRef.current.play().catch(err => console.error("Error playing audio:", err));
+                getPlayableAudioUrl(video.url).then((playableUrl) => {
+                    if (localAudioRef.current) {
+                        localAudioRef.current.src = playableUrl;
+                        localAudioRef.current.loop = !!video.isAmbient;
+                        localAudioRef.current.volume = volume / 100;
+                        resumeAudioContext();
+                        localAudioRef.current.play().catch(err => console.error("Error playing audio:", err));
+                    }
+                });
             }
         }
     };
@@ -453,6 +527,10 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             if (audioContextRef.current) {
                 audioContextRef.current.close().catch(err => console.error("Error closing AudioContext:", err));
             }
+            activeBlobUrlsRef.current.forEach((blobUrl) => {
+                URL.revokeObjectURL(blobUrl);
+            });
+            activeBlobUrlsRef.current.clear();
         };
     }, []);
 
