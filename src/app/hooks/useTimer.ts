@@ -15,12 +15,21 @@ interface UseTimerReturn {
   isTimerRunning: boolean;
   showSettingsModal: boolean;
   timerSettings: TimerSettings;
+  enableNotifications: boolean;
+  enableSound: boolean;
   formatTime: () => string;
   handleTimerModeChange: (mode: TimerMode, minutes: number) => void;
   handleStartPauseTimer: () => void;
   handleResetTimer: () => void;
-  handleSaveTimerSettings: (pomodoro: number, shortBreak: number, longBreak: number) => void;
+  handleSaveTimerSettings: (
+    pomodoro: number,
+    shortBreak: number,
+    longBreak: number,
+    enableNotifications: boolean,
+    enableSound: boolean
+  ) => void;
   setShowSettingsModal: (show: boolean) => void;
+  requestNotificationPermission: () => Promise<boolean>;
 }
 
 export const useTimer = (): UseTimerReturn => {

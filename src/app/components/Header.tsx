@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useMobileMenu } from '../context/MobileMenuContext';
 import { useRouter } from 'next/navigation';
 import UserSettingsModal from './UserSettingsModal';
+import { AppNotification, subscribeToNotifications } from '../lib/notificationBus';
 
 const Header: React.FC = () => {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
@@ -47,25 +48,8 @@ const Header: React.FC = () => {
   }, [showDropdown]);
 
   // Mock Notifications
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      title: 'Welcome to Padhega!',
-      message: 'Start your first study session and earn XP.',
-      time: 'Just now',
-      type: 'success',
-      read: false
-    },
-    {
-      id: 2,
-      title: 'Daily Streak',
-      message: 'You have a 3-day study streak. Keep it up!',
-      time: '2h ago',
-      type: 'info',
-      read: false,
-      link: '/stats'
-    }
-  ]);
+  // Notifications State
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -89,10 +73,65 @@ const Header: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Load notifications from localStorage on mount, fall back to default mocks
+  useEffect(() => {
+    const saved = localStorage.getItem('padhega_header_notifications');
+    if (saved) {
+      try {
+        setNotifications(JSON.parse(saved));
+      } catch (err) {
+        console.error('Error loading header notifications:', err);
+      }
+    } else {
+      // First time layout: set initial default mocks
+      const initialMocks: AppNotification[] = [
+        {
+          id: 'welcome-1',
+          title: 'Welcome to Padhega!',
+          message: 'Start your first study session and earn XP.',
+          time: 'Just now',
+          type: 'success',
+          read: false
+        },
+        {
+          id: 'streak-2',
+          title: 'Daily Streak',
+          message: 'You have a 3-day study streak. Keep it up!',
+          time: '2h ago',
+          type: 'info',
+          read: false,
+          link: '/stats'
+        }
+      ];
+      setNotifications(initialMocks);
+      localStorage.setItem('padhega_header_notifications', JSON.stringify(initialMocks));
+    }
+  }, []);
+
+  // Save to localStorage when notifications update
+  useEffect(() => {
+    if (mounted && notifications.length > 0) {
+      localStorage.setItem('padhega_header_notifications', JSON.stringify(notifications));
+    } else if (mounted && notifications.length === 0) {
+      localStorage.setItem('padhega_header_notifications', JSON.stringify([]));
+    }
+  }, [notifications, mounted]);
+
+  // Subscribe to notification bus
+  useEffect(() => {
+    const unsubscribe = subscribeToNotifications((newNotif) => {
+      setNotifications((prev) => {
+        const updated = [newNotif, ...prev].slice(0, 20); // Keep max 20
+        return updated;
+      });
+    });
+    return unsubscribe;
+  }, []);
+
   const toggleDropdown = () => setShowDropdown(!showDropdown);
   const toggleNotifications = () => setShowNotifications(!showNotifications);
 
-  const markAsRead = (id: number, link?: string) => {
+  const markAsRead = (id: string | number, link?: string) => {
     setNotifications(notifications.map(n => n.id === id ? { ...n, read: true } : n));
     if (link) {
       router.push(link);

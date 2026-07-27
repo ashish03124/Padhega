@@ -12,12 +12,21 @@ interface TimerSectionProps {
         shortBreak: number;
         longBreak: number;
     };
+    enableNotifications: boolean;
+    enableSound: boolean;
     formatTime: () => string;
     handleTimerModeChange: (mode: TimerMode, minutes: number) => void;
     handleStartPauseTimer: () => void;
     handleResetTimer: () => void;
-    handleSaveTimerSettings: (pomodoro: number, shortBreak: number, longBreak: number) => void;
+    handleSaveTimerSettings: (
+        pomodoro: number,
+        shortBreak: number,
+        longBreak: number,
+        enableNotifications: boolean,
+        enableSound: boolean
+    ) => void;
     setShowSettingsModal: (show: boolean) => void;
+    requestNotificationPermission: () => Promise<boolean>;
 }
 
 const TimerSection: React.FC<TimerSectionProps> = ({
@@ -27,13 +36,41 @@ const TimerSection: React.FC<TimerSectionProps> = ({
     isTimerRunning,
     showSettingsModal,
     timerSettings,
+    enableNotifications,
+    enableSound,
     formatTime,
     handleTimerModeChange,
     handleStartPauseTimer,
     handleResetTimer,
     handleSaveTimerSettings,
     setShowSettingsModal,
+    requestNotificationPermission
 }) => {
+    // Local state for settings form toggles
+    const [localNotifications, setLocalNotifications] = React.useState(enableNotifications);
+    const [localSound, setLocalSound] = React.useState(enableSound);
+
+    // Sync local state when modal opens
+    React.useEffect(() => {
+        if (showSettingsModal) {
+            setLocalNotifications(enableNotifications);
+            setLocalSound(enableSound);
+        }
+    }, [showSettingsModal, enableNotifications, enableSound]);
+
+    const handleNotificationToggle = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const checked = e.target.checked;
+        if (checked) {
+            const permitted = await requestNotificationPermission();
+            setLocalNotifications(permitted);
+        } else {
+            setLocalNotifications(false);
+        }
+    };
+
+    const handleSoundToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setLocalSound(e.target.checked);
+    };
     // Calculate total seconds for the current mode
     const getTotalSeconds = () => {
         if (timerMode === 'pomodoro') return timerSettings.pomodoro * 60;
@@ -149,7 +186,9 @@ const TimerSection: React.FC<TimerSectionProps> = ({
                             handleSaveTimerSettings(
                                 parseInt(formData.get('pomodoro') as string),
                                 parseInt(formData.get('shortBreak') as string),
-                                parseInt(formData.get('longBreak') as string)
+                                parseInt(formData.get('longBreak') as string),
+                                localNotifications,
+                                localSound
                             );
                         }}>
                             <div className="form-group">
@@ -182,6 +221,35 @@ const TimerSection: React.FC<TimerSectionProps> = ({
                                     defaultValue={timerSettings.longBreak}
                                 />
                             </div>
+
+                            <div className="form-group" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+                                <label style={{ margin: 0, textTransform: 'none', fontSize: '0.95rem' }}>
+                                    <i className="fas fa-bell" style={{ marginRight: '0.5rem', color: 'var(--accent-primary)' }}></i> Desktop Alerts
+                                </label>
+                                <label className="switch">
+                                    <input
+                                        type="checkbox"
+                                        checked={localNotifications}
+                                        onChange={handleNotificationToggle}
+                                    />
+                                    <span className="slider round"></span>
+                                </label>
+                            </div>
+
+                            <div className="form-group" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+                                <label style={{ margin: 0, textTransform: 'none', fontSize: '0.95rem' }}>
+                                    <i className="fas fa-volume-up" style={{ marginRight: '0.5rem', color: 'var(--accent-primary)' }}></i> Sound Effects
+                                </label>
+                                <label className="switch">
+                                    <input
+                                        type="checkbox"
+                                        checked={localSound}
+                                        onChange={handleSoundToggle}
+                                    />
+                                    <span className="slider round"></span>
+                                </label>
+                            </div>
+
                             <button type="submit" className="btn btn-primary">
                                 Save
                             </button>
