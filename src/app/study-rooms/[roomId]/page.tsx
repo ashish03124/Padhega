@@ -81,7 +81,7 @@ export default function RoomPage() {
             // Join the study room (local state)
             const joined = await joinRoom(roomId, directPassword);
             if (!joined) {
-                setError('Incorrect room password');
+                setError(room.privacy === 'password' ? 'Incorrect room password' : 'Failed to join study room');
                 return;
             }
 

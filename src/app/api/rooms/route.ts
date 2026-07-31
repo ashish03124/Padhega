@@ -13,8 +13,23 @@ export async function GET(request: NextRequest) {
         const session = await getServerSession(authOptions);
         const { searchParams } = new URL(request.url);
         const mineOnly = searchParams.get('mine') === 'true';
+        const id = searchParams.get('id');
 
         await connectToDatabase();
+
+        // If specific ID is requested, fetch it directly
+        if (id) {
+            const isObjectId = /^[0-9a-fA-F]{24}$/.test(id);
+            const query = isObjectId
+                ? { $or: [{ _id: id }, { roomId: id }] }
+                : { roomId: id };
+
+            const room = await StudyRoom.findOne(query)
+                .populate('createdBy', 'name email image')
+                .populate('participants', 'name email image');
+
+            return NextResponse.json(room ? [room] : []);
+        }
 
         const query: any = { isActive: true };
 
@@ -103,7 +118,11 @@ export async function PATCH(request: NextRequest) {
 
         await connectToDatabase();
 
-        const roomObj = await StudyRoom.findOne({ $or: [{ _id: id }, { roomId: id }] });
+        const isObjectId = /^[0-9a-fA-F]{24}$/.test(id);
+        const query = isObjectId
+            ? { $or: [{ _id: id }, { roomId: id }] }
+            : { roomId: id };
+        const roomObj = await StudyRoom.findOne(query);
         if (!roomObj) return NextResponse.json({ error: 'Room not found' }, { status: 404 });
 
         if (action === 'join' && roomObj.privacy === 'password') {
