@@ -279,31 +279,7 @@ const MusicSection: React.FC<MusicSectionProps> = ({
                     </div>
 
                     <div className="ambient-sounds-section">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                            <h4 style={{ margin: 0 }}>Built-in Ambient Sounds</h4>
-                            {musicSource === 'local' && videoId.startsWith('ambient-') && (
-                                <button 
-                                    className="btn btn-secondary stop-ambient-btn" 
-                                    onClick={handleStopAmbient}
-                                    style={{
-                                        padding: '0.4rem 0.8rem',
-                                        fontSize: '0.8rem',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '0.4rem',
-                                        background: 'rgba(239, 68, 68, 0.15)',
-                                        border: '1px solid rgba(239, 68, 68, 0.3)',
-                                        color: '#ef4444',
-                                        borderRadius: 'var(--radius-sm)',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s'
-                                    }}
-                                    title="Stop Ambient Audio"
-                                >
-                                    <i className="fas fa-stop"></i> Stop Sound
-                                </button>
-                            )}
-                        </div>
+                        <h4>Built-in Ambient Sounds</h4>
                         <p className="subtitle">Plays loopable, mobile background-compatible focus sounds</p>
                         <div className="ambient-grid">
                             {AMBIENT_SOUNDS.map((sound) => {
