@@ -52,6 +52,11 @@ CONTENT STRUCTURE:
             systemInstruction = `You are a quiz generator. Create a 5-question multiple choice quiz for "${prompt}".
              Format as JSON: { "questions": [{ "question": "...", "options": ["..."], "answer": "..." }] }`;
             userPrompt = `Generate a quiz for: ${prompt}`;
+        } else if (type === 'motivation') {
+            systemInstruction = `You are a warm, encouraging AI study partner. Generate a single, highly inspiring and original study tip or motivational quote for a student.
+            Make it concise (maximum 2 sentences), modern, and genuinely helpful. Do not use generic cliches.
+            Respond strictly in JSON format with two keys: "text" (the quote/tip) and "author" (always "AI Study Partner" or a creative variation like "Your Study Partner").`;
+            userPrompt = `Generate a fresh motivational study quote. Optional context: ${prompt || 'None'}`;
         }
 
         // Get list of available models

@@ -49,7 +49,7 @@ const HomeClient: React.FC = () => {
 
                 {/* Row 4: Motivation (Full Width) */}
                 <div className="bento-item bento-row-full bento-item-translucent">
-                    <MotivationSection />
+                    <MotivationSection tasks={tasks.tasks} />
                 </div>
             </main>
         </>
