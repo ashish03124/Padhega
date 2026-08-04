@@ -7,6 +7,8 @@ import { TimerProvider } from '../context/TimerContext';
 import { MusicProvider } from '../context/MusicContext';
 import AuthModal from './AuthModal';
 import ToastContainer from './Toast';
+import PersistentPlayer from './PersistentPlayer';
+import './persistent-player.css';
 
 export function Providers({ children }: { children: React.ReactNode }) {
     return (
@@ -16,6 +18,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
                     <MusicProvider>
                         <MobileMenuProvider>
                             {children}
+                            <PersistentPlayer />
                             <AuthModal />
                             <ToastContainer />
                         </MobileMenuProvider>

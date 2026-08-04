@@ -345,18 +345,13 @@ const MusicSection: React.FC<MusicSectionProps> = ({
                 </div>
             )}
 
-            {/* YouTube IFrame Player - hidden by default, shown when showVideo is true */}
+            {/* YouTube IFrame Player Placeholder - coordinates guide for global player */}
             {musicSource === 'youtube' && videoId && (
-                <div className={`youtube-player-wrapper ${showVideo ? 'yt-visible' : 'yt-hidden'}`}>
-                    <YouTube
-                        key={videoId}
-                        videoId={videoId}
-                        opts={youtubeOpts}
-                        onReady={onYouTubeReady}
-                        onStateChange={onYouTubeStateChange}
-                        className="youtube-iframe"
-                    />
-                </div>
+                <div 
+                    id="youtube-placeholder" 
+                    className={`youtube-player-wrapper ${showVideo ? 'yt-visible' : 'yt-hidden'}`}
+                    style={{ height: showVideo ? '220px' : '0px' }}
+                />
             )}
 
             {/* Album Art & Visualizer - shown only when video is hidden */}

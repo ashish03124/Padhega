@@ -65,6 +65,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const [nowPlaying, setNowPlaying] = useState('Not playing');
     const [volume, setVolume] = useState(50);
     const [isPlaying, setIsPlaying] = useState(false);
+    const [isPlayerReady, setIsPlayerReady] = useState(false);
     const [thumbnail, setThumbnail] = useState('');
     const [musicSearchResults, setMusicSearchResults] = useState<any[]>([]);
     const [isSearchingMusic, setIsSearchingMusic] = useState(false);
@@ -208,6 +209,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     const onYouTubeReady = (event: any) => {
         youtubePlayerRef.current = event.target;
+        setIsPlayerReady(true);
         event.target.setVolume(volume);
         if (isPlaying) {
             event.target.playVideo();
@@ -269,7 +271,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // YouTube player progress tracking timer
     useEffect(() => {
         let interval: NodeJS.Timeout;
-        if (isPlaying && musicSource === 'youtube' && youtubePlayerRef.current) {
+        if (isPlaying && musicSource === 'youtube' && isPlayerReady && youtubePlayerRef.current) {
             interval = setInterval(() => {
                 try {
                     if (youtubePlayerRef.current.getCurrentTime && youtubePlayerRef.current.getDuration) {
@@ -284,7 +286,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             }, 500);
         }
         return () => clearInterval(interval);
-    }, [isPlaying, musicSource]);
+    }, [isPlaying, musicSource, isPlayerReady]);
 
     const handlePlayPauseMusic = () => {
         if (musicSource === 'youtube') {
@@ -339,6 +341,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             localAudioRef.current.pause();
         }
         setIsPlaying(false);
+        setIsPlayerReady(false);
         setVideoId('');
         setNowPlaying('Not playing');
         setThumbnail('');
@@ -415,6 +418,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setCurrentTime(0);
         setDuration(0);
         setIsPlaying(true);
+        setIsPlayerReady(isYT ? !!(youtubePlayerRef.current && youtubePlayerRef.current.loadVideoById) : false);
 
         if (isYT) {
             if (localAudioRef.current) {
