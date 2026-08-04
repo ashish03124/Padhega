@@ -45,14 +45,15 @@ interface MusicContextType {
     youtubeOpts: any;
     handleLocalFileSelect: (file: File) => void;
     audioAnalyser: AnalyserNode | null;
+    handleStopAmbient: () => void;
 }
 
 const AMBIENT_AUDIO_URLS = [
-    'https://assets.mixkit.co/active_storage/sfx/2433/2433-84.wav',
-    'https://assets.mixkit.co/active_storage/sfx/2508/2508-84.wav',
-    'https://assets.mixkit.co/active_storage/sfx/2438/2438-84.wav',
-    'https://assets.mixkit.co/active_storage/sfx/2432/2432-84.wav',
-    'https://assets.mixkit.co/active_storage/sfx/2568/2568-84.wav'
+    'https://raw.githubusercontent.com/remvze/moodist/main/public/sounds/rain/rain-on-window.mp3',
+    'https://raw.githubusercontent.com/remvze/moodist/main/public/sounds/nature/waves.mp3',
+    'https://raw.githubusercontent.com/remvze/moodist/main/public/sounds/animals/birds.mp3',
+    'https://raw.githubusercontent.com/remvze/moodist/main/public/sounds/nature/campfire.mp3',
+    'https://raw.githubusercontent.com/remvze/moodist/main/public/sounds/noise/white-noise.wav'
 ];
 
 const MusicContext = createContext<MusicContextType | undefined>(undefined);
@@ -466,6 +467,20 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         selectMusicTrack(track, [track]);
     };
 
+    const handleStopAmbient = () => {
+        if (localAudioRef.current) {
+            localAudioRef.current.pause();
+            localAudioRef.current.src = '';
+        }
+        setIsPlaying(false);
+        setIsPlayerReady(false);
+        setVideoId('');
+        setNowPlaying('Not playing');
+        setThumbnail('');
+        setCurrentTime(0);
+        setDuration(0);
+    };
+
     const handleNextTrack = () => {
         const q = queueRef.current;
         if (q.length === 0) return;
@@ -623,6 +638,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         formatTime,
         handleLocalFileSelect,
         audioAnalyser,
+        handleStopAmbient,
     };
 
     return (

@@ -10,43 +10,43 @@ const YouTube = dynamic(() => import('react-youtube'), {
 const AMBIENT_SOUNDS = [
     {
         id: 'rain',
-        title: 'Rain & Thunder',
+        title: 'Rain on Window',
         icon: 'fa-cloud-showers-heavy',
-        url: 'https://assets.mixkit.co/active_storage/sfx/2433/2433-84.wav',
+        url: 'https://raw.githubusercontent.com/remvze/moodist/main/public/sounds/rain/rain-on-window.mp3',
         thumbnail: 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=300&auto=format&fit=crop&q=60',
-        author: 'Mixkit Ambient'
+        author: 'Moodist Ambient'
     },
     {
         id: 'waves',
         title: 'Ocean Waves',
         icon: 'fa-water',
-        url: 'https://assets.mixkit.co/active_storage/sfx/2508/2508-84.wav',
+        url: 'https://raw.githubusercontent.com/remvze/moodist/main/public/sounds/nature/waves.mp3',
         thumbnail: 'https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=300&auto=format&fit=crop&q=60',
-        author: 'Mixkit Ambient'
+        author: 'Moodist Ambient'
     },
     {
         id: 'birds',
         title: 'Forest Birds',
         icon: 'fa-tree',
-        url: 'https://assets.mixkit.co/active_storage/sfx/2438/2438-84.wav',
+        url: 'https://raw.githubusercontent.com/remvze/moodist/main/public/sounds/animals/birds.mp3',
         thumbnail: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=300&auto=format&fit=crop&q=60',
-        author: 'Mixkit Ambient'
+        author: 'Moodist Ambient'
     },
     {
         id: 'fire',
         title: 'Campfire Crackle',
         icon: 'fa-fire',
-        url: 'https://assets.mixkit.co/active_storage/sfx/2432/2432-84.wav',
+        url: 'https://raw.githubusercontent.com/remvze/moodist/main/public/sounds/nature/campfire.mp3',
         thumbnail: 'https://images.unsplash.com/photo-1478147427282-58a87a120781?w=300&auto=format&fit=crop&q=60',
-        author: 'Mixkit Ambient'
+        author: 'Moodist Ambient'
     },
     {
         id: 'noise',
         title: 'White Noise',
         icon: 'fa-volume-mute',
-        url: 'https://assets.mixkit.co/active_storage/sfx/2568/2568-84.wav',
+        url: 'https://raw.githubusercontent.com/remvze/moodist/main/public/sounds/noise/white-noise.wav',
         thumbnail: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=300&auto=format&fit=crop&q=60',
-        author: 'Mixkit Ambient'
+        author: 'Moodist Ambient'
     }
 ];
 
@@ -88,6 +88,7 @@ interface MusicSectionProps {
     youtubeOpts: any;
     handleLocalFileSelect: (file: File) => void;
     audioAnalyser: AnalyserNode | null;
+    handleStopAmbient: () => void;
 }
 
 const MusicSection: React.FC<MusicSectionProps> = ({
@@ -128,6 +129,7 @@ const MusicSection: React.FC<MusicSectionProps> = ({
     youtubeOpts,
     handleLocalFileSelect,
     audioAnalyser,
+    handleStopAmbient,
 }) => {
     const progressPercentage = duration > 0 ? (currentTime / duration) * 100 : 0;
     const barRefs = React.useRef<(HTMLDivElement | null)[]>([]);
@@ -277,7 +279,31 @@ const MusicSection: React.FC<MusicSectionProps> = ({
                     </div>
 
                     <div className="ambient-sounds-section">
-                        <h4>Built-in Ambient Sounds</h4>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                            <h4 style={{ margin: 0 }}>Built-in Ambient Sounds</h4>
+                            {musicSource === 'local' && videoId.startsWith('ambient-') && (
+                                <button 
+                                    className="btn btn-secondary stop-ambient-btn" 
+                                    onClick={handleStopAmbient}
+                                    style={{
+                                        padding: '0.4rem 0.8rem',
+                                        fontSize: '0.8rem',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.4rem',
+                                        background: 'rgba(239, 68, 68, 0.15)',
+                                        border: '1px solid rgba(239, 68, 68, 0.3)',
+                                        color: '#ef4444',
+                                        borderRadius: 'var(--radius-sm)',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s'
+                                    }}
+                                    title="Stop Ambient Audio"
+                                >
+                                    <i className="fas fa-stop"></i> Stop Sound
+                                </button>
+                            )}
+                        </div>
                         <p className="subtitle">Plays loopable, mobile background-compatible focus sounds</p>
                         <div className="ambient-grid">
                             {AMBIENT_SOUNDS.map((sound) => {
@@ -287,6 +313,10 @@ const MusicSection: React.FC<MusicSectionProps> = ({
                                         key={sound.id}
                                         className={`ambient-card ${isCurrent ? 'active' : ''}`}
                                         onClick={() => {
+                                            if (isCurrent && isPlaying) {
+                                                handleStopAmbient();
+                                                return;
+                                            }
                                             const track = {
                                                 videoId: `ambient-${sound.id}`,
                                                 title: sound.title,
