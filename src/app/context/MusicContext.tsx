@@ -411,7 +411,7 @@ export const MusicProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const isYT = !isLocalOrAmbient;
 
         setMusicSource(isYT ? 'youtube' : 'local');
-        setVideoId(isYT ? video.videoId : '');
+        setVideoId(video.videoId || '');
         setYoutubeUrl(video.url || '');
         setNowPlaying(video.title || 'Loading...');
         setThumbnail(video.thumbnail || '');

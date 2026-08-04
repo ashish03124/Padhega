@@ -43,3 +43,10 @@ next-env.d.ts
 # yt-dlp binary and scraper logs
 /bin/
 *-player-script.js
+
+# Local testing and temporary files
+/playwright-report/
+/test-results/
+/scratch/
+server_log.txt
+
